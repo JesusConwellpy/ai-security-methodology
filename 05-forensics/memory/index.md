@@ -127,7 +127,7 @@ When PCAP with HTTPS traffic and a server coredump are both available, extract t
 ```bash
 # 1. Find TLS Session ID from Wireshark handshake (ClientHello/ServerHello)
 # 2. Search coredump for session ID bytes
-grep -c '\x19\xAB\x5E\xDC\x02\xF0\x97\xD5' corefile
+grep -cP '\x19\xAB\x5E\xDC\x02\xF0\x97\xD5' corefile
 # 3. Read 48 bytes before session ID match as master_key
 # 4. Create Wireshark pre-master-secret log:
 # RSA Session-ID:<hex_id> Master-Key:<hex_key>
@@ -178,10 +178,10 @@ pyrasite-shell <PID>
 # Inside pyrasite shell:
 import sys, uncompyle6
 for name, obj in globals().items():
-    if hasattr(obj, 'func_code'):
+    if hasattr(obj, '__code__'):       # Python 3: func_code was renamed to __code__
         print(f"\n=== {name} ===")
         uncompyle6.main.uncompyle(sys.version_info[0] + sys.version_info[1]/10.0,
-                                   obj.func_code, sys.stdout)
+                                   obj.__code__, sys.stdout)
 print(globals())  # May contain flags, keys
 ```
 

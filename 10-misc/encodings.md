@@ -66,10 +66,11 @@ print(decoded)  # b'MetaCTF{fl04...'
 ### UTF-16 Endianness Reversal (Mojibake Fix)
 ```python
 # When text appears as CJK characters due to endianness mismatch
-mojibake = ""  # NOT 你好世界 -- see note below
-# NOTE: A real mojibake example would use byte-swapped CJK text,
-# e.g. "䠀攀氀氀漀" (endianness-mangled "Hello").
-# When the input text is actually garbled (not already correct), run:
+# The example text below is already correct Chinese, so this is a
+# simplified demo. A real mojibake input would look like byte-swapped
+# CJK, e.g. the endianness-mangled form of "Hello" would be garbled
+# CJK characters that fix when the endianness is swapped below.
+mojibake = "你好世界"  # placeholder (this text is already correct)
 
 # If encoded as UTF-16-LE but decoded as UTF-16-BE:
 fixed = mojibake.encode('utf-16-be').decode('utf-16-le')
