@@ -109,11 +109,11 @@ procedural_triggers:
 | SQL injection (unauthenticated) | 9.8 (Critical) | Data access, potential RCE |
 | Authentication bypass | 9.1 (Critical) | Complete auth failure |
 | Deserialization RCE | 9.8 (Critical) | Remote code execution |
-| SSRF to cloud metadata | 8.8 (High) | Credential access |
-| Stored XSS | 7.1 (High) | User interaction needed |
+| SSRF to cloud metadata | 7.5 (High) | Credential access |
+| Stored XSS | 5.4 (Medium) | User interaction needed |
 | Reflected XSS | 6.1 (Medium) | Requires user interaction |
 | CSRF | 6.5 (Medium) | Requires user action |
-| Information disclosure | 5.3 (Medium) | Read-only data access |
+| Information disclosure | 4.3 (Medium) | Read-only data access |
 | Open redirect | 4.7 (Medium) | Limited direct impact |
 | Missing HSTS header | 3.7 (Low) | MitM context required |
 | Directory listing | 3.3 (Low) | Info gathering only |

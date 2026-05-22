@@ -52,6 +52,7 @@ Match entry signals to attack modules:
 | Shell obtained, internal network | `/post-exploitation` | [Post-Exploit Index](07-post-exploitation/) |
 | Suspicious binary, C2 traffic, script | `/malware-analysis` | [Malware Index](08-malware-analysis/) |
 | Public information gathering, social media | `/osint` | [OSINT Index](09-osint/) |
+| Encoding puzzle, sandbox jail, RF/SDR signal | `/osint` | [Misc Index](10-misc/) |
 
 **Payload discipline:** Load payloads from [Payload Library](payloads/) — do not generate from training memory.
 **Bypass discipline:** If payloads are blocked, load [Bypass Toolkit](00-methodology/04-bypass-toolkit.md).

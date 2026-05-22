@@ -87,7 +87,7 @@ def queueRequests(target, wordlists):
     engine = RequestEngine(endpoint=target.endpoint,
                             concurrentConnections=30,
                             requestsPerConnection=100,
-                            engine=Engine.BURP2)
+                            engine=Engine.BURP)
     for i in range(50):
         engine.queue(target.req, gate='r1')
     engine.openGate('r1')  # All 50 requests fire at once

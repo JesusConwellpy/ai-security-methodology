@@ -327,8 +327,8 @@ def estimate_gradient(model, x, eps=0.001, n_samples=100):
         p1 = model(x + eps * u)
         p0 = model(x - eps * u)
 
-        # Finite difference approximation
-        grad_estimate += (p1 - p0) * u
+        # Finite difference approximation with 1/(2*eps) normalization
+        grad_estimate += (p1 - p0) / (2 * eps) * u
 
     return grad_estimate / n_samples
 ```
