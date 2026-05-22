@@ -117,3 +117,17 @@
 - [Tools Index](references/tools-index.md)
 - [Compliance](references/compliance.md)
 - [Report Template](references/report-template.md)
+
+## skills
+- [security-methodology](skills/security-methodology/SKILL.md) — 5-phase workflow orchestrator
+- [web-attacks](skills/web-attacks/SKILL.md) — Web vulnerability technique routing
+- [binary-exploitation](skills/binary-exploitation/SKILL.md) — Binary exploitation technique routing
+- [reverse-engineering](skills/reverse-engineering/SKILL.md) — Reverse engineering technique routing
+- [crypto-attacks](skills/crypto-attacks/SKILL.md) — Cryptography attack technique routing
+- [forensics](skills/forensics/SKILL.md) — Forensic analysis technique routing
+- [ai-ml-security](skills/ai-ml-security/SKILL.md) — AI/ML attack technique routing
+- [post-exploitation](skills/post-exploitation/SKILL.md) — Post-exploitation technique routing
+- [malware-analysis](skills/malware-analysis/SKILL.md) — Malware analysis technique routing
+- [osint](skills/osint/SKILL.md) — OSINT technique routing
+- [payload-reference](skills/payload-reference/SKILL.md) — Payload library (anti-hallucination gate)
+- [security-patterns](skills/security-patterns/SKILL.md) — Attack patterns and vendor fingerprints
