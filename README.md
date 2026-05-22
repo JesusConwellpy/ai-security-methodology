@@ -41,6 +41,27 @@ Every technique document is structured for AI agent consumption:
 ## Pitfalls       — Common mistakes and false positives
 ```
 
+## Skills
+
+12 Claude Code skill definitions in [`skills/`](skills/) route AI agents to the right documentation based on attack surface signals:
+
+| Skill | Trigger |
+|-------|---------|
+| [security-methodology](skills/security-methodology/SKILL.md) | Any security assessment or penetration test |
+| [web-attacks](skills/web-attacks/SKILL.md) | HTTP application, API, browser client |
+| [binary-exploitation](skills/binary-exploitation/SKILL.md) | Native binary, memory corruption |
+| [reverse-engineering](skills/reverse-engineering/SKILL.md) | Compiled binary, obfuscated code, firmware |
+| [crypto-attacks](skills/crypto-attacks/SKILL.md) | RSA, ECC, AES, hash, PRNG |
+| [forensics](skills/forensics/SKILL.md) | Disk image, memory dump, PCAP, stego |
+| [ai-ml-security](skills/ai-ml-security/SKILL.md) | LLM agent, chatbot, ML model API |
+| [post-exploitation](skills/post-exploitation/SKILL.md) | Shell access obtained, internal network |
+| [malware-analysis](skills/malware-analysis/SKILL.md) | Suspicious binary, script, C2 traffic |
+| [osint](skills/osint/SKILL.md) | Public information gathering |
+| [payload-reference](skills/payload-reference/SKILL.md) | Payload lookup (anti-hallucination) |
+| [security-patterns](skills/security-patterns/SKILL.md) | Attack patterns and vendor fingerprints |
+
+Each skill includes trigger conditions, a signal-to-document routing table, quick-start commands, and tool recommendations.
+
 ## Usage
 
 Load relevant documents as context for AI agents performing security research. Each document is self-contained — read it, follow the decision tree, apply the techniques.
