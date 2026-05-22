@@ -61,8 +61,8 @@ s.check()
 # Recover m first via GCD of differences of differences:
 from math import gcd
 diffs = [s1 - s0, s2 - s1, s3 - s2]
-diffs2 = [diffs[1]*diffs[0] - diffs[0]*diffs[0], diffs[2]*diffs[1] - diffs[1]*diffs[1]]
-m = abs(gcd(diffs2[0], diffs2[1]))
+diffs2 = [diffs[2]*diffs[0] - diffs[1]*diffs[1]]
+m = abs(diffs2[0])
 # Then recover a and c:
 a = (s2 - s1) * pow(s1 - s0, -1, m) % m
 c = (s1 - a * s0) % m

@@ -110,7 +110,11 @@ When two ciphertexts encrypt `m + pad1` and `m + pad2` with `e = 3`:
 R.<X> = PolynomialRing(Zmod(n))
 f1 = (X + pad1)^3 - c1
 f2 = (X + pad2)^3 - c2
-m = -gcd(f1, f2).coefficients()[0]
+g = gcd(f1, f2)
+# If gcd returns non-monic polynomial, divide through by the leading
+# coefficient before extracting the constant term.
+lc = g.lc()  # leading coefficient (may not be 1 over Zmod(n))
+m = -g[0] / lc if lc != 1 else -g[0]
 ```
 
 ### Bleichenbacher / Manger Padding Oracle

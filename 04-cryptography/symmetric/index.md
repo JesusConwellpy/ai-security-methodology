@@ -135,12 +135,26 @@ def invert_linear(shifts=(19, 28)):
 ```python
 # Choose 256 plaintexts with one byte iterating 0..255, others constant
 # After 3 rounds, XOR sum at any byte position = 0 (balanced property)
-for candidate in range(256):
+# Round 4: SubBytes -> ShiftRows -> AddRoundKey.
+# InvShiftRows must be applied because the balanced property holds
+# before ShiftRows, but ciphertext bytes are positioned after ShiftRows.
+
+def inv_shift_rows(state):
+    """Inverse ShiftRows on 16 bytes in column-major order."""
+    state[1], state[5], state[9], state[13] = state[13], state[1], state[5], state[9]
+    state[2], state[6], state[10], state[14] = state[10], state[14], state[2], state[6]
+    state[3], state[7], state[11], state[15] = state[7], state[11], state[15], state[3]
+    return state
+
+for guess in range(256):
     xor_sum = 0
     for ct in ciphertexts:
-        xor_sum ^= inv_sbox[ct[pos] ^ candidate]
+        # Partial decrypt round 4: undo AddRoundKey + SubBytes, then InvShiftRows
+        dec = [inv_sbox[b ^ guess] for b in ct]
+        dec = inv_shift_rows(dec)
+        xor_sum ^= dec[pos]
     if xor_sum == 0:
-        print(f"Key byte: {candidate}")
+        print(f"Key byte: {guess}")
 ```
 
 ### LFSR Stream Cipher via Berlekamp-Massey

@@ -295,6 +295,7 @@ Image.fromarray(diff.astype(np.uint8)).save('revealed.png')
 
 # Arnold's Cat Map (chaotic image scramble)
 def arnold_cat_map(image, n):
+    assert image.shape[0] >= n and image.shape[1] >= n, "image must be at least n x n"
     result = np.zeros_like(image)
     for x in range(n):
         for y in range(n):

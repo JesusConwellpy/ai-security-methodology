@@ -27,8 +27,13 @@ def build_hnp_lattice(q, rs, ss, hs, leaked, t):
     for i in range(n):
         M[i, i] = q
     for i in range(n):
-        M[n, i] = ss[i]
-        M[n + 1, i] = (hs[i] - ss[i] * leaked[i] * (1 << t)) % q
+        # HNP: α_i ≡ s_i^{-1} * (r_i * d + h_i - s_i * leaked_i * 2^t) (mod q)
+        # where α_i = k_i - leaked_i * 2^t is the unknown low nonce bits, |α_i| < 2^t
+        si_inv = pow(ss[i], -1, q)
+        a_i = (si_inv * rs[i]) % q                     # uses rs: coefficient for d
+        c_i = (si_inv * (hs[i] - ss[i] * leaked[i] * (1 << t))) % q
+        M[n, i] = a_i
+        M[n + 1, i] = c_i
     M[n, n] = 1
     M[n + 1, n + 1] = q // (1 << t)
     return M

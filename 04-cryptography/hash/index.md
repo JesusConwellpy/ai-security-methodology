@@ -80,12 +80,12 @@ CRC is GF(2)-linear: `CRC(A XOR B) = CRC(A) XOR CRC(B) XOR C0` (where C0 is CRC 
 ```python
 def crc_forge(data, target_crc):
     """Append 4 bytes to produce target CRC32 using polynomial division over GF(2)."""
+    import binascii
     poly = 0xEDB88320  # reflected CRC-32 polynomial
     crc = target_crc ^ 0xFFFFFFFF  # invert final xor
-    pad = len(data)
     for b in data[::-1]:
         crc = _crc32_table_update(crc, b, poly)
-    correction = crc ^ _curr_crc(data)  # difference to inject
+    correction = crc ^ (binascii.crc32(data) & 0xFFFFFFFF)  # replace missing _curr_crc
     return data + correction.to_bytes(4, 'little')
 
 def _crc32_table_update(crc, byte, poly):

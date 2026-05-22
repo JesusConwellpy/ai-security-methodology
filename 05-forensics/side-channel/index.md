@@ -57,6 +57,9 @@ def extract_features(audio, sr, peak):
     mfcc = librosa.feature.mfcc(y=seg.astype(float), sr=sr, n_mfcc=20)
     return np.concatenate([mfcc.mean(axis=1), mfcc.std(axis=1)])
 
+# X_ref, y_ref must come from labeled training data (known keystrokes
+# recorded on the same keyboard/microphone setup). X_ref rows are feature
+# vectors (MFCC means + stds); y_ref is the corresponding key label.
 knn = KNeighborsClassifier(n_neighbors=5).fit(X_ref, y_ref)
 flag = ''.join(knn.predict([extract_features(audio, sr, p) for p in peaks]))
 ```
