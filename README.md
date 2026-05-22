@@ -1,52 +1,50 @@
 # AI Security Methodology
 
-Security research methodology knowledge base designed for AI agent consumption. Covers vulnerability discovery, exploitation techniques, and defense analysis organized by attack type.
+> Security research methodology for AI agents — attack patterns, decision trees, techniques, and payloads organized by vulnerability type.
 
-## Scope
+85 self-contained technique documents across 16 modules. Each document follows a uniform AI-oriented structure: trigger conditions, attack surface identification, decision trees, core techniques with real payloads, bypass strategies, verification methods, and common pitfalls.
 
-- **Web security**: injection, auth bypass, SSRF, XSS, deserialization, HTTP smuggling, prototype pollution
-- **Binary exploitation**: buffer overflow, format string, heap, ROP, kernel, sandbox escape
-- **Reverse engineering**: static/dynamic analysis, anti-analysis, platform-specific patterns
-- **Cryptography attacks**: RSA, ECC, symmetric ciphers, hash collisions, PRNG, lattice/LWE
-- **Forensics**: disk, memory, network, steganography, side-channel analysis
-- **AI/ML attacks**: prompt injection, adversarial ML, model extraction
-- **Post-exploitation**: lateral movement, privilege escalation, Active Directory
-- **Malware analysis**: static triaging, dynamic sandboxing, PE/.NET, C2 protocols
-- **OSINT**: social media, geolocation, DNS/web reconnaissance
+---
 
-## Structure
+## Modules
 
-```
-00-methodology/       Core workflow and decision frameworks
-01-web-attacks/       Web vulnerability techniques
-02-binary-exploitation/  Binary exploitation techniques
-03-reverse-engineering/  Reverse engineering techniques
-04-cryptography/      Cryptography attack techniques
-05-forensics/         Forensics analysis techniques
-06-ai-ml/             AI/ML attack techniques
-07-post-exploitation/ Post-exploitation and lateral movement
-08-malware-analysis/  Malware analysis techniques
-09-osint/             Open source intelligence
-10-misc/              Miscellaneous techniques
-payloads/             Payload library organized by target
-patterns/             Reusable attack patterns from real-world cases
-dictionaries/         Vendor fingerprints and default credentials
-industry/             Industry-specific attack surfaces
-references/           Tools index, compliance, and templates
-```
+| # | Module | Documents | Focus |
+|---|--------|-----------|-------|
+| 00 | [Methodology](00-methodology/) | 7 | Workflow, recon, enum, prioritization, bypass toolkit, evidence, reporting |
+| 01 | [Web Attacks](01-web-attacks/) | 19 | SQLi, XSS, SSRF, SSTI, XXE, command injection, file upload, path traversal, deserialization, JWT, OAuth/SAML, prototype pollution, HTTP smuggling, GraphQL, race conditions, logic flaws, info disclosure, client-side, NoSQL injection |
+| 02 | [Binary Exploitation](02-binary-exploitation/) | 7 | Buffer overflow, format string, heap, ROP, kernel, sandbox escape, shellcode |
+| 03 | [Reverse Engineering](03-reverse-engineering/) | 5 | Static analysis, dynamic analysis, anti-analysis, languages & platforms, tools |
+| 04 | [Cryptography](04-cryptography/) | 6 | RSA, ECC, symmetric ciphers, hash, PRNG, lattice/LWE |
+| 05 | [Forensics](05-forensics/) | 5 | Disk, memory, network, steganography, side-channel |
+| 06 | [AI/ML Attacks](06-ai-ml/) | 3 | Prompt injection, adversarial ML, model attacks |
+| 07 | [Post-Exploitation](07-post-exploitation/) | 3 | Lateral movement, privilege escalation, Active Directory |
+| 08 | [Malware Analysis](08-malware-analysis/) | 4 | Static triaging, dynamic sandboxing, PE/.NET, C2 protocols |
+| 09 | [OSINT](09-osint/) | 3 | Social media, geolocation, DNS/web reconnaissance |
+| 10 | [Misc](10-misc/) | 3 | Sandbox jails, encodings, RF/SDR |
+| — | [Payloads](payloads/) | 4 | Web, binary, network payloads; WAF bypass variants |
+| — | [Patterns](patterns/) | 7 | Reusable attack patterns from disclosed cases |
+| — | [Dictionaries](dictionaries/) | 2 | Vendor fingerprints, default credentials |
+| — | [Industry](industry/) | 2 | Banking/finance and telecom attack surfaces |
+| — | [References](references/) | 3 | Tools index, compliance, report template |
 
 ## Document Format
 
-Each technique document follows a uniform structure:
+Every technique document is structured for AI agent consumption:
 
-1. **Trigger** — when to load this knowledge
-2. **Attack Surface** — target characteristics indicating this technique
-3. **Decision Tree** — step-by-step diagnostic flow
-4. **Techniques** — core methods with representative payloads
-5. **Bypass** — detection/evasion approaches
-6. **Verification** — how to confirm successful exploitation
-7. **Pitfalls** — common mistakes and false positives
+```
+## Trigger        — When to load this knowledge
+## Attack Surface — Target characteristics indicating this technique
+## Decision Tree  — Step-by-step diagnostic flow
+## Techniques     — Core methods with functional code and payloads
+## Bypass         — Filter/WAF/IDS evasion strategies
+## Verification   — How to confirm successful exploitation
+## Pitfalls       — Common mistakes and false positives
+```
 
 ## Usage
 
-Load relevant documents as context for AI agents performing security research tasks. Each document is self-contained and can act as a standalone skill module.
+Load relevant documents as context for AI agents performing security research. Each document is self-contained — read it, follow the decision tree, apply the techniques.
+
+## License
+
+MIT — see [LICENSE](LICENSE)
