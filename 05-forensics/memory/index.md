@@ -73,12 +73,12 @@ strings dump.raw | grep -o 'UEsD[A-Za-z0-9+/=]*'
 ### Windows Credential Recovery
 
 ```bash
-# Mimikatz plugin
-vol.py --plugins=./plugin/ -f dump.vmem --profile=Win7SP1x64 mimikatz
+# Mimikatz plugin (third-party plugin for Volatility 3)
+vol3 -f dump.vmem windows.mimikatz --plugins ./plugin/
 
 # Hashdump from SAM registry
-vol.py -f dump.vmem --profile=Win7SP1x64 hivelist
-vol.py -f dump.vmem --profile=Win7SP1x64 hashdump -y SYSTEM_off -s SAM_off
+vol3 -f dump.vmem windows.registry.hivelist
+vol3 -f dump.vmem windows.hashdump --sys-offset <SYSTEM_offset> --sam-offset <SAM_offset>
 
 # NTLM hash verification
 python3 -c "
@@ -139,14 +139,15 @@ When ransomware encrypts files and the AES key resides in memory:
 
 ```bash
 # Check Volatility first
-vol -f memdump.raw linux.pslist
-vol -f memdump.raw linux.proc.Maps
+vol3 -f memdump.raw linux.pslist
+vol3 -f memdump.raw linux.proc.Maps
 
 # If Volatility fails, raw candidate scanning
 strings -a memdump.raw | grep "/home/.*/enc_key.bin"
 
 # Test 32-byte candidates against known file magic
 python3 << 'EOF'
+from Crypto.Cipher import AES
 candidates = [...]  # extracted from memory near anchor strings
 for key in candidates:
     for veg_file in encrypted_files:

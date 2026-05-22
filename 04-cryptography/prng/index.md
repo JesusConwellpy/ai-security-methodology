@@ -125,7 +125,7 @@ def to_double(v):
     return struct.unpack('d', struct.pack('<Q', bits))[0] - 1.0
 
 # Constrain floor(C * to_double(state0)) == observed_val for each output
-# Reverse observation order (LIFO cache requires tac)
+# Reverse observation order (LIFO cache requires reversal)
 ```
 
 For backward stepping (predicting before observed sequence):
