@@ -247,5 +247,13 @@ BF side-channel: correct characters cause more `,` (read) operations because the
 ## Verification
 Confirm language identification by extracting version strings (Go version, Rust compiler commit, Swift version, .NET framework). Verify recovered function names by checking cross-references and calling convention alignment. Test decompiled code against known input/output pairs.
 
+## Bypass
+
+| Language | Common Anti-RE Pattern | Countermeasure |
+|----------|----------------------|----------------|
+| Go | Static linking, large binaries | Symbol recovery via `go_parser`, `IDAGolangHelper` |
+| Rust | Name mangling, monomorphization | `rust-demangle`, pattern recognition |
+| .NET | Obfuscation (ConfuserEx, .NET Reactor) | `de4dot`, `dnSpy` with managed debugging |
+
 ## Pitfalls
 Go strings are NOT null-terminated -- Ghidra without golang-loader plugin misses them. Rust monomorphization creates many similar-looking functions. Kotlin/Native lacks JVM metadata, making it C++-like in decompilation. Haskell STG closures make standard disassembly nearly useless -- use `hsdecomp`. Brainfuck programs with loop-based multiplication (compiled from BF-it) need nested operation counting. Unity IL2CPP metadata may be encrypted -- not always directly dumpable.

@@ -62,8 +62,8 @@ r = requests.get(
 
 ### Alternative Twitter Data Sources
 ```bash
-# Nitter instances (no login required)
-curl -s "https://nitter.poast.org/TARGET_USERNAME" | grep -oP 'tweet-id-\d+'
+# Nitter instances (no login required; many instances come and go)
+# curl -s "https://nitter.net/TARGET_USERNAME" | grep -oP 'tweet-id-\d+'
 
 # Syndication API
 curl -s "https://syndication.twitter.com/srv/timeline-profile/screen-name/TARGET_USERNAME"

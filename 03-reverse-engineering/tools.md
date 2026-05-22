@@ -326,5 +326,15 @@ binary.write("patched")
 ## Verification
 Test tool output by cross-referencing decompilations across multiple tools (dogbolt.org). Verify key findings (expected values, algorithm logic) by implementing inverse functions and testing against known outputs. For debugging tools, confirm breakpoints fire at expected code locations.
 
+## Bypass
+
+| Limitation | Workaround |
+|-----------|-----------|
+| Anti-debug detection | Use Frida with early-init gadget; patch ptrace via LD_PRELOAD |
+| VM-protected binaries (VMProtect, Themida) | Trace with x64dbg + ScyllaHide; use D-810 for obfuscated code |
+| Stripped binaries | FLIRT signatures, Kaitai Struct for format parsing |
+| Encrypted/compressed binaries | Unicorn-based emulation for runtime decryption; static unpack with custom scripts |
+| Architecture gaps (obscure MCU, ASIC) | Use Ghidra's Sleigh for custom processor modules |
+
 ## Pitfalls
 Ghidra may miss Go strings without golang-loader plugin. IDA Free has limited decompilation. Binary Ninja's Python API is powerful but the free version is cloud-based. Unicorn lacks OS syscall support -- use Qiling when file I/O is needed. Radare2 learning curve is steep but r2pipe enables powerful scripting. Frida can be detected via `/proc/self/maps` scans -- use early-init gadget. Angr path explosion requires function hooking for complex binaries. Decompiler comparison catches decompiler bugs but requires manual validation.

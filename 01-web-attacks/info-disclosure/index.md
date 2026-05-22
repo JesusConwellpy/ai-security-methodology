@@ -185,7 +185,7 @@ curl -s http://bucket.cos.ap-guangzhou.myqcloud.com/?prefix=
 ### WAF Fingerprint via Response Headers
 
 ```bash
-curl -sI http://target | grep -iE "server|x-powered-by|x-aspnet-version|x-dns-prefetch"
+curl -sI http://target | grep -iE "server|x-powered-by|x-aspnet-version"
 # Cloudflare: cf-ray, cf-cache-status
 # Akamai: x-akamai-transformed
 # AWS: x-amz-rid, x-amz-cf-id

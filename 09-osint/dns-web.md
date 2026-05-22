@@ -26,6 +26,8 @@ dig -t MX target.ctf.domain.com
 dig -t CNAME target.ctf.domain.com
 dig -t A target.ctf.domain.com
 dig -t ANY target.ctf.domain.com
+# NOTE: dig ANY is unreliable per RFC 8482 -- many authoritative
+# servers now return a single random record or HINFO instead of all types.
 
 # Zone transfer (critical -- often misconfigured)
 dig axfr @ns1.target.domain.com target.domain.com

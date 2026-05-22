@@ -78,7 +78,9 @@ fixed = mojibake.encode('utf-16-le').decode('utf-16-be')
 ### BCD (Binary-Coded Decimal) Decoding
 ```python
 def bcd_decode(data):
-    """Each nibble encodes one decimal digit. Each byte = 2 digits."""
+    """Each nibble encodes one decimal digit. Each byte = 2 digits.
+    NOTE: This is a simplified demo that produces a nibble-ASCII transform,
+    not true BCD decoding. Real BCD decoding produces numeric digits, not text."""
     digits = ''.join(f'{(b>>4)&0xf}{b&0xf}' for b in data)
     # Convert digit pairs to ASCII
     return ''.join(chr(int(digits[i:i+2])) for i in range(0, len(digits), 2))

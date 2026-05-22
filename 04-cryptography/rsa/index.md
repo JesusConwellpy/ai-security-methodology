@@ -32,7 +32,6 @@ Given two ciphertexts `c1 = m^e1 mod n` and `c2 = m^e2 mod n` with `gcd(e1, e2) 
 ```python
 def common_modulus(c1, c2, e1, e2, n):
     from math import gcd
-    g, a, b = [gcd(e1, e2)], 0, 0
     def egcd(a, b):
         if a == 0: return b, 0, 1
         g, x, y = egcd(b % a, a)

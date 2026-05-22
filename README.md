@@ -22,7 +22,7 @@
 | 09 | [OSINT](09-osint/) | 3 | Social media, geolocation, DNS/web reconnaissance |
 | 10 | [Misc](10-misc/) | 3 | Sandbox jails, encodings, RF/SDR |
 | — | [Payloads](payloads/) | 4 | Web, binary, network payloads; WAF bypass variants |
-| — | [Patterns](patterns/) | 7 | Reusable attack patterns from disclosed cases |
+| — | [patterns](patterns/) | 7 | Reusable attack patterns from disclosed cases |
 | — | [Dictionaries](dictionaries/) | 2 | Vendor fingerprints, default credentials |
 | — | [Industry](industry/) | 2 | Banking/finance and telecom attack surfaces |
 | — | [References](references/) | 3 | Tools index, compliance, report template |
