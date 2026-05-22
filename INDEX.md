@@ -1,5 +1,8 @@
 # Index
 
+- [LICENSE](LICENSE) — MIT License
+- [README](README.md) — Project overview and usage
+
 ## 00-methodology
 - [Security Research Workflow](00-methodology/00-workflow.md) — 5-phase methodology: intake → recon → enum → hunt → report
 - [Passive Reconnaissance](00-methodology/01-recon-passive.md) — CT logs, DNS history, wayback, GitHub dorks
