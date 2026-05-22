@@ -150,6 +150,7 @@ from math import gcd
 from functools import reduce
 p = reduce(gcd, [x**2 + y**2 - 1 for x, y in known_points])
 # Factor p+1; if smooth, Pohlig-Hellman applies
+# Use p+1 when p ≡ 3 mod 4; use p-1 when p ≡ 1 mod 4
 order = p + 1
 ```
 
