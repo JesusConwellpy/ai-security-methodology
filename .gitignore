@@ -1,0 +1,46 @@
+# Environment & Config
+.env
+.env.*
+*.local
+*.secret
+config.local.*
+settings.local.json
+authorization.toml
+
+# Claude Code
+.claude/
+CLAUDE.md
+.gstack/
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & Temp
+*.log
+*.tmp
+/tmp/
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Build
+dist/
+build/
+target/
+
+# Sensitive paths
+/root/
+/home/
+/etc/
