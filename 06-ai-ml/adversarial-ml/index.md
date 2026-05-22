@@ -106,6 +106,9 @@ def pgd_attack(model, x, y_true, epsilon=0.03, alpha=0.007, num_steps=40, random
 def targeted_pgd(model, x, y_target, epsilon=0.03, alpha=0.007, num_steps=100):
     """
     Targeted PGD attack. Use more steps for targeted (100+).
+    NOTE: batch_size should be 1 for this targeted implementation.
+    With batch_size > 1, all samples would be targeted to the same class.
+    For batched attacks, broadcast y_target to match batch dimension.
     """
     x_adv = x.clone().detach()
 
@@ -379,7 +382,11 @@ HOMOGLYPHS = {
 }
 
 def homoglyph_evasion(text, replacement_rate=0.3):
-    """Replace visible characters with homoglyphs."""
+    """Replace visible characters with homoglyphs.
+    NOTE: A simple "contains non-ASCII" classifier would also flag CJK,
+    emoji, accented Latin characters, and other legitimate Unicode --
+    not just homoglyph attacks. Real deployments should use a targeted
+    homoglyph allowlist rather than blanket non-ASCII rejection."""
     result = []
     for char in text:
         if char.lower() in HOMOGLYPHS and random.random() < replacement_rate:

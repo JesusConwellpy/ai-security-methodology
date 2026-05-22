@@ -94,14 +94,16 @@ out.save('hidden.png')
 
 ### PNG Manipulation
 
-```python
+```bash
 # Fix corrupt PNG magic and lowercase chunks
 printf '\x89PNG\r\n\x1a\n' | dd of=broken.png conv=notrunc bs=1 count=8
-python3 -c "
-d = open('broken.png','rb').read()
+```
+
+```python
+with open('broken.png', 'rb') as f:
+    d = bytearray(f.read())
 d = d.replace(b'idat', b'IDAT').replace(b'iend', b'IEND')
-open('fixed.png','wb').write(d)
-"
+open('fixed.png', 'wb').write(d)
 
 # PNG hidden height (brute-force from IHDR CRC)
 import struct, zlib
@@ -157,7 +159,7 @@ python3 jpeg_uncrop.py input.jpg --width 256 --height 200
 
 # Nearest-neighbor interpolation stego
 # Data at regular pixel intervals, downscale recovers it
-magick flag.webp -interpolate nearest-neighbor -interpolative-resize 256x192 hidden.png
+magick flag.webp -interpolate nearest-neighbor -resize 256x192 hidden.png
 
 # F5 steganography detection (DCT coefficient ratio)
 import numpy as np

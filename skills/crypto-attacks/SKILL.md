@@ -28,12 +28,12 @@ e = ...  # public exponent
 
 | Signal | Document |
 |--------|----------|
-| RSA (n, e, c), textbook RSA, signature oracle | [RSA Attacks](04-cryptography/rsa/index.md) |
-| ECC parameters, small subgroup, anomalous curve | [ECC Attacks](04-cryptography/ecc/index.md) |
-| AES-CBC/CTR/GCM, padding oracle, nonce reuse | [Symmetric Ciphers](04-cryptography/symmetric/index.md) |
-| MD5/SHA-1/SHA-256, hash extension, collisions | [Hash](04-cryptography/hash/index.md) |
-| MT19937, LCG, XorShift, C rand(), Java Random | [PRNG Attacks](04-cryptography/prng/index.md) |
-| Lattice reduction, LWE, HNP, knapsack, subset-sum | [Lattice & LWE](04-cryptography/lattice/index.md) |
+| RSA (n, e, c), textbook RSA, signature oracle | [RSA Attacks](../../04-cryptography/rsa/index.md) |
+| ECC parameters, small subgroup, anomalous curve | [ECC Attacks](../../04-cryptography/ecc/index.md) |
+| AES-CBC/CTR/GCM, padding oracle, nonce reuse | [Symmetric Ciphers](../../04-cryptography/symmetric/index.md) |
+| MD5/SHA-1/SHA-256, hash extension, collisions | [Hash](../../04-cryptography/hash/index.md) |
+| MT19937, LCG, XorShift, C rand(), Java Random | [PRNG Attacks](../../04-cryptography/prng/index.md) |
+| Lattice reduction, LWE, HNP, knapsack, subset-sum | [Lattice & LWE](../../04-cryptography/lattice/index.md) |
 
 ## Common Attack Checklist
 

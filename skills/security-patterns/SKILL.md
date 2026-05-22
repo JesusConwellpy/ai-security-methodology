@@ -17,13 +17,13 @@ Distilled patterns from disclosed cases. Each pattern describes: what it is, sig
 
 | Category | Document | Focus |
 |----------|----------|-------|
-| Password reset step-skip, SSO token theft, weak session keys, remember-me tokens | [Auth Vulnerabilities](patterns/auth-vulnerabilities.md) | Authentication flaws |
-| Direct input concatenation, NoSQL operator injection, blind SQL, second-order injection | [Injection Patterns](patterns/injection-patterns.md) | Injection variants |
-| Email verification bypass, unauthenticated API access, subscription manipulation, IDOR | [Authorization Bypass](patterns/authorization-bypass.md) | AuthZ bypass |
-| Payment tampering, race conditions, password reset logic, CAPTCHA bypass, coupon abuse | [Business Logic Flaws](patterns/business-logic-flaws.md) | Logic flaws |
-| Hop-by-hop header leakage, Alt-Svc credential leak, directory/file enumeration | [Information Disclosure](patterns/information-disclosure.md) | Info leaks |
-| Unauthenticated endpoints, IDOR, BOLA, mass assignment, GraphQL introspection | [API Vulnerabilities](patterns/api-vulnerabilities.md) | API issues |
-| Multi-step chains combining multiple low-severity issues into critical impact | [Chained Attacks](patterns/chained-attacks.md) | Attack chains |
+| Password reset step-skip, SSO token theft, weak session keys, remember-me tokens | [Auth Vulnerabilities](../../patterns/auth-vulnerabilities.md) | Authentication flaws |
+| Direct input concatenation, NoSQL operator injection, blind SQL, second-order injection | [Injection Patterns](../../patterns/injection-patterns.md) | Injection variants |
+| Email verification bypass, unauthenticated API access, subscription manipulation, IDOR | [Authorization Bypass](../../patterns/authorization-bypass.md) | AuthZ bypass |
+| Payment tampering, race conditions, password reset logic, CAPTCHA bypass, coupon abuse | [Business Logic Flaws](../../patterns/business-logic-flaws.md) | Logic flaws |
+| Hop-by-hop header leakage, Alt-Svc credential leak, directory/file enumeration | [Information Disclosure](../../patterns/information-disclosure.md) | Info leaks |
+| Unauthenticated endpoints, IDOR, BOLA, mass assignment, GraphQL introspection | [API Vulnerabilities](../../patterns/api-vulnerabilities.md) | API issues |
+| Multi-step chains combining multiple low-severity issues into critical impact | [Chained Attacks](../../patterns/chained-attacks.md) | Attack chains |
 
 ## How to Use
 
@@ -38,5 +38,5 @@ Distilled patterns from disclosed cases. Each pattern describes: what it is, sig
 ## Reference Data
 
 For vendor-specific fingerprints and default credentials (especially China-market enterprise software), load:
-- [China Vendor Fingerprints](dictionaries/china-vendor-fingerprints.md)
-- [Default Credentials](dictionaries/default-credentials.md)
+- [China Vendor Fingerprints](../../dictionaries/china-vendor-fingerprints.md)
+- [Default Credentials](../../dictionaries/default-credentials.md)

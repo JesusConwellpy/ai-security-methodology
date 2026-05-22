@@ -17,10 +17,10 @@ metadata:
 
 | Category | Document | Lines |
 |----------|----------|-------|
-| SQLi, NoSQLi, XSS, RCE, SSRF, SSTI, LFI, XXE, JWT, GraphQL, deserialization, smuggling, upload, traversal, prototype pollution, WebSocket | [Web Payloads](payloads/web/index.md) | 1,348 |
-| Buffer overflow, format string, shellcode, ROP chains, heap, kernel, seccomp | [Binary Payloads](payloads/binary/index.md) | 556 |
-| Port scanning, SMB/AD/Kerberos, LLMNR, MITM, protocol attacks, tunneling, ADCS | [Network Payloads](payloads/network/index.md) | 491 |
-| SQLi, XSS, RCE, SSRF, SSTI, LFI, JWT, Log4j, Spring, Fastjson, Struts2, WebLogic, ThinkPHP, Shiro, Tomcat, Laravel bypasses | [WAF Bypass](payloads/waf-bypass.md) | 736 |
+| SQLi, NoSQLi, XSS, RCE, SSRF, SSTI, LFI, XXE, JWT, GraphQL, deserialization, smuggling, upload, traversal, prototype pollution, WebSocket | [Web Payloads](../../payloads/web/index.md) | 1,348 |
+| Buffer overflow, format string, shellcode, ROP chains, heap, kernel, seccomp | [Binary Payloads](../../payloads/binary/index.md) | 556 |
+| Port scanning, SMB/AD/Kerberos, LLMNR, MITM, protocol attacks, tunneling, ADCS | [Network Payloads](../../payloads/network/index.md) | 491 |
+| SQLi, XSS, RCE, SSRF, SSTI, LFI, JWT, Log4j, Spring, Fastjson, Struts2, WebLogic, ThinkPHP, Shiro, Tomcat, Laravel bypasses | [WAF Bypass](../../payloads/waf-bypass.md) | 736 |
 
 ## Usage
 

@@ -15,9 +15,9 @@ metadata:
 
 | Attack | Target | Document |
 |--------|--------|----------|
-| System prompt extraction, role bypass, multi-turn jailbreak, encoding tricks, tool manipulation, context window exploitation | LLM apps, chatbots, AI agents with tools | [Prompt Injection](06-ai-ml/prompt-injection/index.md) |
-| FGSM, PGD, C&W, adversarial patches, black-box evasion, homoglyph text evasion, data poisoning, backdoor detection | Image classifiers, NLP models, content filters | [Adversarial ML](06-ai-ml/adversarial-ml/index.md) |
-| Weight perturbation negation, model inversion, encoder collision, LoRA adapter merging, model extraction, membership inference, training data extraction, gradient leakage | ML APIs, federated learning, fine-tuned models | [Model Attacks](06-ai-ml/model-attacks/index.md) |
+| System prompt extraction, role bypass, multi-turn jailbreak, encoding tricks, tool manipulation, context window exploitation | LLM apps, chatbots, AI agents with tools | [Prompt Injection](../../06-ai-ml/prompt-injection/index.md) |
+| FGSM, PGD, C&W, adversarial patches, black-box evasion, homoglyph text evasion, data poisoning, backdoor detection | Image classifiers, NLP models, content filters | [Adversarial ML](../../06-ai-ml/adversarial-ml/index.md) |
+| Weight perturbation negation, model inversion, encoder collision, LoRA adapter merging, model extraction, membership inference, training data extraction, gradient leakage | ML APIs, federated learning, fine-tuned models | [Model Attacks](../../06-ai-ml/model-attacks/index.md) |
 
 ## Prompt Injection Quick Tests
 

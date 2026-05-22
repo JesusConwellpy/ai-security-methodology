@@ -15,9 +15,9 @@ metadata:
 
 | Target | Document |
 |--------|----------|
-| Social media accounts, usernames, profile analysis, Unicode steganography | [Social Media](09-osint/social-media.md) |
-| Image location, EXIF, reverse image search, satellite analysis, maps | [Geolocation](09-osint/geolocation.md) |
-| DNS records, WHOIS, SSL certificates, Wayback Machine, Google dorks, Shodan | [DNS & Web Recon](09-osint/dns-web.md) |
+| Social media accounts, usernames, profile analysis, Unicode steganography | [Social Media](../../09-osint/social-media.md) |
+| Image location, EXIF, reverse image search, satellite analysis, maps | [Geolocation](../../09-osint/geolocation.md) |
+| DNS records, WHOIS, SSL certificates, Wayback Machine, Google dorks, Shodan | [DNS & Web Recon](../../09-osint/dns-web.md) |
 
 ## Image Geolocation Checklist
 

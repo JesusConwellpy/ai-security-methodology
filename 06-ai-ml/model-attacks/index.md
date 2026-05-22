@@ -471,9 +471,11 @@ def distill_model(input_dim=10, n_queries=10000):
     # Evaluate fidelity (how well student mimics teacher)
     X_test = np.random.randn(2000, input_dim)
     y_test = np.array([query_model(x)["class"] for x in X_test])
-    student_pred = (student.predict(X_test) > 0.5).astype(int)
+    student_pred = (student.predict_proba(X_test)[:, 1] > 0.5).astype(int)
     fidelity = (student_pred == y_test).mean()
     print(f"Student-teacher fidelity: {fidelity:.2%}")
+    # NOTE: predict() returns class labels, not probabilities.
+    # Use predict_proba() to get confidence scores for threshold-based decisions.
 
     return student
 

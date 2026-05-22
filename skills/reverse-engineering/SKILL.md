@@ -26,11 +26,11 @@ objdump -d binary | head -50  # disassembly preview
 
 | Task | Document |
 |------|----------|
-| Disassembly, decompiler, symbol recovery, signature matching | [Static Analysis](03-reverse-engineering/static-analysis.md) |
-| Debugger, tracing, hooking, emulation, symbolic execution | [Dynamic Analysis](03-reverse-engineering/dynamic-analysis.md) |
-| Anti-debug, anti-VM, packing, obfuscation, anti-disassembly | [Anti-Analysis](03-reverse-engineering/anti-analysis.md) |
-| Go, Rust, Swift, Kotlin, Haskell, C++ patterns; APK, iOS, WASM, .NET, Unity, embedded | [Languages & Platforms](03-reverse-engineering/languages-platforms.md) |
-| Tool reference — Ghidra, IDA, radare2, Binary Ninja, Frida, angr, Unicorn | [Tools](03-reverse-engineering/tools.md) |
+| Disassembly, decompiler, symbol recovery, signature matching | [Static Analysis](../../03-reverse-engineering/static-analysis.md) |
+| Debugger, tracing, hooking, emulation, symbolic execution | [Dynamic Analysis](../../03-reverse-engineering/dynamic-analysis.md) |
+| Anti-debug, anti-VM, packing, obfuscation, anti-disassembly | [Anti-Analysis](../../03-reverse-engineering/anti-analysis.md) |
+| Go, Rust, Swift, Kotlin, Haskell, C++ patterns; APK, iOS, WASM, .NET, Unity, embedded | [Languages & Platforms](../../03-reverse-engineering/languages-platforms.md) |
+| Tool reference — Ghidra, IDA, radare2, Binary Ninja, Frida, angr, Unicorn | [Tools](../../03-reverse-engineering/tools.md) |
 
 ## Quick Start by Platform
 

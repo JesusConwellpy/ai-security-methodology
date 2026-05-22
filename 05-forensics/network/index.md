@@ -142,7 +142,7 @@ for pkt in packets:
     if pkt.haslayer(DNSQR):
         raw = bytes(pkt[DNS])
         qname = pkt[DNSQR].qname
-        expected_len = 12 + len(qname) + 1 + 2 + 2
+        expected_len = 12 + len(qname) + 2 + 2  # header + qname + qtype + qclass
         if len(raw) > expected_len:
             trailing = raw[expected_len:]
             for b in trailing:

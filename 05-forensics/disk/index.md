@@ -107,11 +107,17 @@ with open("disk.img", "rb") as f:
     root_entries = struct.unpack_from("<H", boot, 17)[0]
     cluster_size = bytes_per_sector * sectors_per_cluster
     fat_start = reserved_sectors * bytes_per_sector
-    data_start = fat_start + (num_fats * sectors_per_fat * bytes_per_sector)
+    root_dir_sectors = ((root_entries * 32) + bytes_per_sector - 1) // bytes_per_sector
+    total_sectors = struct.unpack_from("<H", boot, 19)[0]
+    if total_sectors == 0:
+        total_sectors = struct.unpack_from("<I", boot, 32)[0]
+    data_start = fat_start + (num_fats * sectors_per_fat * bytes_per_sector) + (root_dir_sectors * bytes_per_sector)
     f.seek(fat_start)
     fat = f.read(sectors_per_fat * bytes_per_sector)
+    data_sectors = total_sectors - reserved_sectors - (num_fats * sectors_per_fat) - root_dir_sectors
+    data_clusters = data_sectors // sectors_per_cluster
     free_data = b""
-    for cluster in range(2, len(fat) // 2):
+    for cluster in range(2, 2 + data_clusters):
         entry = struct.unpack_from("<H", fat, cluster * 2)[0]
         if entry == 0x0000:
             offset = data_start + (cluster - 2) * cluster_size
@@ -165,6 +171,9 @@ with open('disk1.img', 'rb') as f: disk1 = f.read()
 with open('disk3.img', 'rb') as f: disk3 = f.read()
 disk2 = bytes(a ^ b for a, b in zip(disk1, disk3))
 with open('disk2.img', 'wb') as f: f.write(disk2)
+```
+
+```bash
 losetup /dev/loop0 disk1.img && losetup /dev/loop1 disk2.img && losetup /dev/loop2 disk3.img
 mdadm --create /dev/md0 --level=5 --raid-devices=3 /dev/loop0 /dev/loop1 /dev/loop2
 ```

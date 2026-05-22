@@ -23,11 +23,11 @@ xxd evidence | head -5
 
 | Evidence Type | Document |
 |---------------|----------|
-| Disk image, filesystem, deleted files, RAID, LUKS, partitions | [Disk Analysis](05-forensics/disk/index.md) |
-| Memory dump, process list, credentials, injected code | [Memory Analysis](05-forensics/memory/index.md) |
-| PCAP, TLS, DNS, covert channels, protocol analysis | [Network Forensics](05-forensics/network/index.md) |
-| Image, audio, video with hidden data, LSB, spectrogram | [Steganography](05-forensics/steganography/index.md) |
-| Power trace, timing data, EM emanations, keyboard acoustics | [Side-Channel](05-forensics/side-channel/index.md) |
+| Disk image, filesystem, deleted files, RAID, LUKS, partitions | [Disk Analysis](../../05-forensics/disk/index.md) |
+| Memory dump, process list, credentials, injected code | [Memory Analysis](../../05-forensics/memory/index.md) |
+| PCAP, TLS, DNS, covert channels, protocol analysis | [Network Forensics](../../05-forensics/network/index.md) |
+| Image, audio, video with hidden data, LSB, spectrogram | [Steganography](../../05-forensics/steganography/index.md) |
+| Power trace, timing data, EM emanations, keyboard acoustics | [Side-Channel](../../05-forensics/side-channel/index.md) |
 
 ## Fast Path by File Extension
 
