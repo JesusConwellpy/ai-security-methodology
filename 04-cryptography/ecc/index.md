@@ -128,7 +128,7 @@ for t in range(255):
 
 ### Clock Group DLP (x^2 + y^2 = 1 mod p)
 
-The circle group has order `p+1`, isomorphic to norm-1 elements of `GF(p^2)*`:
+The circle group has order `p+1` when `p ≡ 3 mod 4` (or `p-1` when `p ≡ 1 mod 4`), isomorphic to norm-1 elements of `GF(p^2)*`:
 
 ```python
 def clock_mul(P, Q, p):

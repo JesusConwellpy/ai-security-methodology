@@ -38,7 +38,7 @@ dig TXT _dmarc.target.domain.com
 
 # Subdomain brute-force
 for sub in $(cat subdomains.txt); do
-    host "$sub.target.domain.com" 2>/dev/null | grep "has address"
+    host "$sub.target.domain.com" 2>/dev/null | grep -E "has (IPv6 )?address"
 done
 ```
 

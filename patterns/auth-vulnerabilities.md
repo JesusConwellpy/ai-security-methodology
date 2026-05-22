@@ -129,10 +129,10 @@ curl -b "PHPSESSID=ATTACKER_KNOWN" http://target/profile
 
 | Report | Vulnerability | Technique | Bounty |
 |--------|---------------|-----------|--------|
-| Mars (3228888) | Password reset bypass via OTP response manipulation | Intercept and modify JSON response | N/A |
-| Snapchat (265943) | SSO token theft via chained open redirect + SVG XSS | SSO token in URL fragment, uploaded SVG executes JS | $7,500 |
-| Kubernetes (1387366) | Weak Flask SECRET_KEY brute force | `flask-unsign` with wordlist reveals key "N/A" | $250 |
-| Node.js (2817648) | Crypto error handling crash | Improper error handling in async crypto ops | N/A |
-| curl (3480713) | Proxy-Authorization header leak via redirect | Hop-by-hop header not stripped on connection type change | N/A |
-| curl (3485826) | Alt-Svc bypasses credential leak protection (CVE-2018-1000007) | Alt-Svc remapping skips credential check | N/A |
-| Sifchain (1276384) | SSH signature verification panic | Crafted ed25519 key triggers panic in golang crypto | N/A |
+| Mars  | Password reset bypass via OTP response manipulation | Intercept and modify JSON response | N/A |
+| Snapchat  | SSO token theft via chained open redirect + SVG XSS | SSO token in URL fragment, uploaded SVG executes JS | $7,500 |
+| Kubernetes  | Weak Flask SECRET_KEY brute force | `flask-unsign` with wordlist reveals key "N/A" | $250 |
+| Node.js  | Crypto error handling crash | Improper error handling in async crypto ops | N/A |
+| curl  | Proxy-Authorization header leak via redirect | Hop-by-hop header not stripped on connection type change | N/A |
+| curl  | Alt-Svc bypasses credential leak protection (CVE-2018-1000007) | Alt-Svc remapping skips credential check | N/A |
+| Sifchain  | SSH signature verification panic | Crafted ed25519 key triggers panic in golang crypto | N/A |

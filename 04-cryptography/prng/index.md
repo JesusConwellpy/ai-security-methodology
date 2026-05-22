@@ -106,18 +106,18 @@ def xs128p(s0, s1):
     s1 ^= (s1 >> 17) & 0xFFFFFFFFFFFFFFFF
     s1 ^= s0
     s1 ^= (s0 >> 26) & 0xFFFFFFFFFFFFFFFF
-    return s1, s1, s1  # output is new state0
+    return s1, s0, (s1 + s0) & 0xFFFFFFFFFFFFFFFF  # (new_s0, new_s1, output)
 
 # Z3 solver for floor(C * Math.random()) observations:
 from z3 import *
 def sym_xs128p(s0, s1):
-    s1_ = s0
-    s0_ = s1
+    s1_ = s1          # start with old s1
+    s0_ = s0
     s1_ ^= (s1_ << 23)
     s1_ ^= LShR(s1_, 17)
     s1_ ^= s0_
     s1_ ^= LShR(s0_, 26)
-    return s1, s1_
+    return s1_, s0_   # (mutated_s1, old_s0)
 
 def to_double(v):
     bits = (v >> 12) | 0x3FF0000000000000

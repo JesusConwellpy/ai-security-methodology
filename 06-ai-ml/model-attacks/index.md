@@ -267,10 +267,29 @@ def targeted_encoder_collision(encoder, target_embedding, input_shape=(3, 64, 64
 
 # Hamming-constrained collision: inputs differ in very few pixels
 def sparse_encoder_collision(encoder, input_a, num_pixels=5, num_steps=2000):
-    """Find a version of input_a differing in at most num_pixels."""
-    # Pre-define which pixels can change (randomly select candidates)
-    pixels_to_modify = torch.randint(0, input_a.numel(), (num_pixels,))
-    # ... optimization over only those pixels
+    """Find version of input_a with same embedding, differing in ≤num_pixels."""
+    encoder.eval()
+    with torch.no_grad():
+        embed_a = encoder(input_a.unsqueeze(0))
+    # Select candidate pixel positions by gradient sensitivity
+    x = input_a.clone().detach().requires_grad_(True)
+    embed = encoder(x.unsqueeze(0))
+    loss = (embed - embed_a).pow(2).sum()
+    loss.backward()
+    _, idx = x.grad.abs().flatten().topk(num_pixels)
+    # Optimize only those pixels
+    mask = torch.zeros_like(x.flatten()); mask[idx] = 1
+    x = input_a.clone().detach().requires_grad_(True)
+    opt = torch.optim.Adam([x], lr=0.1)
+    for step in range(num_steps):
+        opt.zero_grad()
+        embed_loss = (encoder(x.unsqueeze(0)) - embed_a).pow(2).sum()
+        spread_loss = -(x.flatten() * (1 - mask) - input_a.flatten()).abs().mean()
+        (embed_loss + 0.1 * spread_loss).backward()
+        x.grad = x.grad * mask.reshape_as(x.grad)  # zero grad on non-candidate pixels
+        opt.step()
+        x.data = torch.clamp(x.data, 0, 1)
+    return x.detach()
 ```
 
 **Key insight:** Encoders compress information, so collisions must exist by the pigeonhole principle. The key is the simultaneous optimization: minimize embedding distance while maximizing input distance. Starting with very different random initializations helps avoid trivial solutions (where the inputs collapse to the same point).

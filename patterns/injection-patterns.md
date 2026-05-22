@@ -161,11 +161,11 @@ for pos in range(1, 33):
 
 | Report | Vulnerability | Technique | Bounty |
 |--------|---------------|-----------|--------|
-| inDrive (2051931) | Blind SQLi in URL path parameters | Boolean-based: `or 1=1--` vs `or 1=2--` | $4,134 |
+| inDrive  | Blind SQLi in URL path parameters | Boolean-based: `or 1=1--` vs `or 1=2--` | $4,134 |
 | Rocket.Chat | NoSQL auth bypass via $ne operator | `{"username":{"$ne":""}}` on OAuth login | Bounty |
 | IBM | Blind SQLi in legacy CGI | Time-based blind in CGI parameter | Bounty |
 | Mars | SQLi in theme_name parameter | Boolean-based blind in CMS theme | Bounty |
 | U.S. DoD | SQLi in entryid parameter | Error-based SQLi in admin interface | Bounty |
 | LASCO | SQLi in CME Query parameter | Union-based extraction from PostgreSQL | Bounty |
-| curl (3418646) | Arbitrary config file inclusion (CWE-73) | `--config` file with `url=file:///etc/passwd` | N/A |
-| Apache (2585376) | Backend output to internal redirect (CVE-2024-38476) | Malicious response header triggers SSRF/RCE | $4,920 |
+| curl  | Arbitrary config file inclusion (CWE-73) | `--config` file with `url=file:///etc/passwd` | N/A |
+| Apache  | Backend output to internal redirect (CVE-2024-38476) | Malicious response header triggers SSRF/RCE | $4,920 |

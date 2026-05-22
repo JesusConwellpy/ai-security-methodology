@@ -42,7 +42,7 @@ import base64
 # Python's base64 module handles multiple base85 variants
 # Adobe Ascii85: <~...~>
 data = b"<~87cURD]j7EboQChq=>"
-decoded = base64.a85decode(data)
+decoded = base64.a85decode(data, adobe=True)
 print(decoded)
 
 # RFC 1924 (Z85 variant)
@@ -101,9 +101,11 @@ def auto_decode(data):
         if all(c in '0123456789abcdefABCDEF' for c in data) and len(data) % 2 == 0:
             data = bytes.fromhex(data).decode('ascii', errors='replace')
         elif set(data) <= set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='):
-            data = base64.b64decode(data).decode('ascii', errors='replace')
+            try: data = base64.b64decode(data).decode('ascii', errors='replace')
+            except Exception: break
         elif set(data) <= set('ABCDEFGHIJKLMNOPQRSTUVWXYZ234567='):
-            data = base64.b32decode(data).decode('ascii', errors='replace')
+            try: data = base64.b32decode(data).decode('ascii', errors='replace')
+            except Exception: break
         else:
             break
     return data

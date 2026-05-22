@@ -290,8 +290,8 @@ pattern_4:
 
 | Chain | Vulnerabilities Combined | Final Impact | Bounty |
 |-------|------------------------|--------------|--------|
-| Snapchat SSO ATO (265943) | Open redirect + SVG XSS + CSRF + Non-expiring token | Full account takeover | $7,500 |
+| Snapchat SSO ATO  | Open redirect + SVG XSS + CSRF + Non-expiring token | Full account takeover | $7,500 |
 | Apache CVE-2024-38476 | Backend response injection + Internal redirect | SSRF + Local code execution | $4,920 |
-| curl ACFI (3418646) | CWE-73 + Trusted config parsing | Arbitrary file read/write | N/A |
-| CSRF -> ATO (2699029) | Missing CSRF + No email verification | Account takeover | N/A |
+| curl ACFI  | CWE-73 + Trusted config parsing | Arbitrary file read/write | N/A |
+| CSRF -> ATO  | Missing CSRF + No email verification | Account takeover | N/A |
 | DOD DOM XSS + SSRF | DOM XSS + SSRF on same endpoint | Internal network scanning | N/A |

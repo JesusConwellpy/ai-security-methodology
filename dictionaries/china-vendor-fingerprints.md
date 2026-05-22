@@ -442,7 +442,7 @@ info_disclosure:
 
 ## SQL Injection High-Frequency Parameters
 
-Parameters most commonly associated with SQL injection vulnerabilities in WooYun database (27,732 confirmed cases):
+Parameters most commonly associated with SQL injection vulnerabilities across disclosed cases:
 
 ```yaml
 high_risk_params:

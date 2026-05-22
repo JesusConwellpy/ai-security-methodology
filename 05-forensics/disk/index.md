@@ -165,7 +165,8 @@ with open('disk1.img', 'rb') as f: disk1 = f.read()
 with open('disk3.img', 'rb') as f: disk3 = f.read()
 disk2 = bytes(a ^ b for a, b in zip(disk1, disk3))
 with open('disk2.img', 'wb') as f: f.write(disk2)
-mdadm --create /dev/md0 --level=5 --raid-devices=3 disk1.img disk2.img disk3.img
+losetup /dev/loop0 disk1.img && losetup /dev/loop1 disk2.img && losetup /dev/loop2 disk3.img
+mdadm --create /dev/md0 --level=5 --raid-devices=3 /dev/loop0 /dev/loop1 /dev/loop2
 ```
 
 ### LUKS Master Key from Memory

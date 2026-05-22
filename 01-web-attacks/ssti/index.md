@@ -29,7 +29,7 @@ Load SSTI methodology when ANY of these signals appear:
    │           ├─ Returns "49" (numeric multiply) → Jinja2/Mako
    │           └─ Error → other engine, try ${7*7}, #{7*7}
    └─ No numeric output → try blind sleep probes
-         └─ {{''.__class__.__mro__[2].__subclasses__()}} style probes
+         └─ {{''.__class__.__mro__[1].__subclasses__()}} style probes
 
 2. Identify → Distinguish engine (see Techniques section per engine)
 

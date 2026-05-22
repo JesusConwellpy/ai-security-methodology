@@ -79,9 +79,21 @@ CRC is GF(2)-linear: `CRC(A XOR B) = CRC(A) XOR CRC(B) XOR C0` (where C0 is CRC 
 
 ```python
 def crc_forge(data, target_crc):
-    # Append 4 bytes to produce target CRC32
-    # Use CRC polynomial division to compute correction suffix
-    pass  # Full implementation requires polynomial long division over GF(2)
+    """Append 4 bytes to produce target CRC32 using polynomial division over GF(2)."""
+    poly = 0xEDB88320  # reflected CRC-32 polynomial
+    crc = target_crc ^ 0xFFFFFFFF  # invert final xor
+    pad = len(data)
+    for b in data[::-1]:
+        crc = _crc32_table_update(crc, b, poly)
+    correction = crc ^ _curr_crc(data)  # difference to inject
+    return data + correction.to_bytes(4, 'little')
+
+def _crc32_table_update(crc, byte, poly):
+    crc ^= byte
+    for _ in range(8):
+        if crc & 1: crc = (crc >> 1) ^ poly
+        else: crc >>= 1
+    return crc
 
 # When used with AES-CTR: flip plaintext bits, fix CRC simultaneously
 X = b'\x00' * offset + b'\x01' + b'\x00' * remaining

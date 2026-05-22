@@ -148,5 +148,5 @@ DELETE /api/document/2001
 | Azure API | Unauthenticated access to internal API | Internal API exposed without auth on public internet | Bounty |
 | NordVPN | Subscription bypass via response manipulation | Modify `{"plan": "free"}` to `{"plan": "premium"}` in response | Bounty |
 | U.S. DoD | Authorization bypass in admin panel | Direct access to admin functions via path discovery | N/A |
-| CSRF -> ATO (2699029) | CSRF to account takeover | Profile edit CSRF with no token | N/A |
-| CSRF -> ATO (2712857) | CSRF to account takeover | No CSRF protection on profile edit | N/A |
+| CSRF -> ATO  | CSRF to account takeover | Profile edit CSRF with no token | N/A |
+| CSRF -> ATO  | CSRF to account takeover | No CSRF protection on profile edit | N/A |

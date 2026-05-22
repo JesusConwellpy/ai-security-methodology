@@ -196,7 +196,9 @@ Java.perform(function() {
 Java.perform(function() {
     // Bypass common root checks
     var File = Java.use("java.io.File");
-    File.exists.implementation = function(path) {
+    File.exists.implementation = function() {
+        // java.io.File.exists() is zero-argument — use this.getPath()
+        var path = this.getPath();
         var blocked = ["/system/bin/su", "/system/xbin/su",
                        "/sbin/su", "/system/app/Superuser.apk"];
         if (blocked.indexOf(path) >= 0) return false;

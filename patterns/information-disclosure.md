@@ -172,8 +172,8 @@ GET /wp-config.php.bak
 
 | Report | Vulnerability | Technique | Bounty |
 |--------|---------------|-----------|--------|
-| curl (3480713) | Proxy-Authorization header leak on redirect | Hop-by-hop header not stripped on connection type transition | N/A |
-| curl (3485826) | Alt-Svc bypasses credential leak protection (CVE-2018-1000007) | Alt-Svc remapping skips credential guard check | N/A |
+| curl  | Proxy-Authorization header leak on redirect | Hop-by-hop header not stripped on connection type transition | N/A |
+| curl  | Alt-Svc bypasses credential leak protection (CVE-2018-1000007) | Alt-Svc remapping skips credential guard check | N/A |
 | General | Stack trace disclosure | Trigger errors with invalid input | Common |
 | General | S3 bucket listing | Misconfigured S3 bucket permissions | Common |
 | General | Git repository exposed | `.git/HEAD` accessible via web | Common |

@@ -373,9 +373,9 @@ HOMOGLYPHS = {
     'i': 'і',  # Cyrillic small letter byelorussian-ukrainian i
     's': 'ѕ',  # Cyrillic small letter dze
     'y': 'у',  # Cyrillic small letter u
-    'T': 'Т',  # Cyrillic capital letter te
-    'H': 'Н',  # Cyrillic capital letter en
-    'B': 'В',  # Cyrillic capital letter ve
+    't': 'Т',  # Cyrillic capital letter te (lowercase key for char.lower() lookup)
+    'h': 'Н',  # Cyrillic capital letter en
+    'b': 'В',  # Cyrillic capital letter ve
 }
 
 def homoglyph_evasion(text, replacement_rate=0.3):

