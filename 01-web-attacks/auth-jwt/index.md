@@ -33,6 +33,8 @@ Load when you see:
 
 ### Algorithm None
 
+> **Note:** `alg: none` only works on JWT libraries released before ~2018 (e.g., `jsonwebtoken` < 9.0, `PyJWT` < 1.7.0, `jjwt` < 0.10.0). Modern libraries reject unsigned tokens by default. Check library versions before relying on this vector.
+
 ```python
 import base64, json
 header = base64.urlsafe_b64encode(json.dumps({"alg":"none","typ":"JWT"}).encode()).rstrip(b"=").decode()
@@ -161,7 +163,7 @@ forged_jwe = token.serialize(compact=True)
 
 - `alg: none` sometimes requires the trailing dot: `header.payload.` (NOT `header.payload`)
 - JWK `n` (modulus) and `e` (exponent) must be base64url-encoded without padding
-- JWT libraries may silently ignore `alg: none` in newer versions -- check the library version
+- `alg: none` only works on JWT libraries released before ~2018 (e.g., `jsonwebtoken` < 9.0, `PyJWT` < 1.7.0). Modern versions reject it by default. Check the library version before relying on this vector.
 - If server uses `jsonwebtoken.verify()`, `alg: none` will throw -- but some wrappers catch and return decoded anyway
 - Balance replay assumes server does NOT cross-check the JWT balance against a server-side ledger
 - For JWE: check the difference between 3-part (signed JWT) and 5-part (encrypted JWE) tokens

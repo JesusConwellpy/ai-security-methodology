@@ -177,6 +177,7 @@ forged = f"{new_header.decode()}.{new_payload.decode()}."
 - OAuth `state` is NOT just CSRF protection -- it also binds the auth request to the callback.
   Without it, the auth code can be used by anyone who captures it.
 - SAML `RelayState` must match between the initial request and callback or the flow fails.
+- **SAML Destination validation** is often overlooked. The `Destination` attribute in `<samlp:Response>` and `<saml:Assertion>` elements specifies the ACS endpoint URL. If the service provider does not validate it, an attacker can replay a SAML assertion captured from one endpoint (e.g., `/saml/acs`) against a different endpoint that may have weaker processing logic.
 - Many SAML implementations check whether the Response is signed but not whether the
   Assertion inside it is signed -- a critical distinction (Response-level signature wrapping).
 - Scope escalation requires the authorization server to NOT validate against a registered allowlist.

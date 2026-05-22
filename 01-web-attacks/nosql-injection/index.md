@@ -128,6 +128,8 @@ for pos in range(100):
 
 ### $where JavaScript Injection
 
+> **Note:** `$where` is disabled by default in Mongoose 7+ (2022). It must be explicitly enabled via `mongoose.set('strictQuery', false)` or the `{ strictQuery: false }` connection option. Verify the Mongoose version before relying on this vector.
+
 ```json
 POST /api/query HTTP/1.1
 Content-Type: application/json

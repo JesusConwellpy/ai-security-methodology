@@ -315,7 +315,7 @@ http://ip8.8.8.8.aaaaaa...aaa.127.0.0.1.xip.io:1212/
 
 ## Pitfalls
 
-- **IMDSv2 blocks v1 on modern AWS.** Do not assume v1 works. If `latest/meta-data/` returns empty or a `401`, the instance uses v2. You need PUT + token, which most SSRF cannot achieve. Try DNS rebinding or gopher-based raw HTTP to bypass.
+- **IMDSv2 blocks v1 on modern AWS.** Do not assume v1 works. If `latest/meta-data/` returns empty or a `401`, the instance uses v2. You need PUT + token, which most SSRF cannot achieve. Try DNS rebinding or gopher-based raw HTTP to bypass. IMDSv2 is default on newer AWS instance types, but some accounts and older instances still support v1 — always try v1 first before falling back to v2 bypasses.
 - **Gopher requires double URL encoding** when the SSRF handler URL-decodes once before passing to the transport layer.
 - **Dict protocol cannot send binary data.** Use gopher for raw binary protocols. Dict only works for text-based commands.
 - **302 redirect chains can switch protocols.** An initial `https://` check can be bypassed by hosting a redirect that points to `gopher://` or `file://`.

@@ -2,7 +2,7 @@
 
 > Security research methodology for AI agents — attack patterns, decision trees, techniques, and payloads organized by vulnerability type.
 
-80 self-contained technique documents across 16 modules. Each document follows a uniform AI-oriented structure: trigger conditions, attack surface identification, decision trees, core techniques with real payloads, bypass strategies, verification methods, and common pitfalls.
+83 self-contained technique documents across 16 modules. Each document follows a uniform AI-oriented structure: trigger conditions, attack surface identification, decision trees, core techniques with real payloads, bypass strategies, verification methods, and common pitfalls.
 
 ---
 

@@ -52,7 +52,7 @@ Match entry signals to attack modules:
 | Shell obtained, internal network | `/post-exploitation` | [Post-Exploit Index](../../07-post-exploitation/) |
 | Suspicious binary, C2 traffic, script | `/malware-analysis` | [Malware Index](../../08-malware-analysis/) |
 | Public information gathering, social media | `/osint` | [OSINT Index](../../09-osint/) |
-| Encoding puzzle, sandbox jail, RF/SDR signal | `/osint` | [Misc Index](../../10-misc/) |
+| Encoding puzzle, sandbox jail, RF/SDR signal | `/osint` (docs in `../../10-misc/`) | [Misc Index](../../10-misc/) |
 
 **Payload discipline:** Load payloads from [Payload Library](../../payloads/) — do not generate from training memory.
 **Bypass discipline:** If payloads are blocked, load [Bypass Toolkit](../../00-methodology/04-bypass-toolkit.md).
@@ -65,7 +65,7 @@ Match entry signals to attack modules:
 ## When Stuck
 
 - Don't know what to attack: [Attack Prioritization](../../00-methodology/03-attack-priority.md)
-- Can't find vulnerabilities: [Control Gap Hunting](../../00-methodology/04-bypass-toolkit.md)
+- Payloads being blocked: [Bypass Toolkit](../../00-methodology/04-bypass-toolkit.md)
 - Need real-world context: [Attack Patterns](../../patterns/)
 
 ## Priorities
