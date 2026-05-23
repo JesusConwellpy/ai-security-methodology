@@ -10,7 +10,7 @@ Textbook RSA is multiplicatively homomorphic — this is the single most importa
 
 ## Decision Tree
 
-Examine `n`, `e`, and any provided ciphertexts. If `n` is small or has known factors, factor it directly (FactorDB, sympy.factorint). If `e` is very small (3), check whether `m^e < n` by taking the integer eth root. If `e` is very large (close to `n`), try Wiener's continued fraction attack for small `d`. If multiple ciphertexts share the same `n` but different `e` values coprime to each other, apply the common modulus attack. If multiple ciphertexts exist with the same small `e` across different `n`, try Hastad's broadcast attack via CRT. If a decryption oracle distinguishes padding validity, apply Bleichenbacher or Manger. If a signing oracle refuses the target message, exploit multiplicative homomorphism to blind or factor the message. If `|p - q|` is small, apply Fermat factorization. If `p-1` is smooth, try Pollard's p-1. If provided with only the CRT exponents (dp, dq, qinv), enumerate small `k` to recover `p`. If partial key bits are known, use Coppersmith's small roots. If multiple public keys are present in a dataset, compute pairwise GCDs to find shared primes.
+Examine `n`, `e`, and any provided ciphertexts. If `n` is small or has known factors, factor it directly (FactorDB, sympy.factorint). If `e` is very small (3), check whether `m^e < n` by taking the integer eth root. If `e` is very large (close to `n`), try Wiener's continued fraction attack for small `d` (bound: `d < N^0.25`). If Wiener fails but `d` is still expected small, try Boneh-Durfee lattice attack (extends bound to `d < N^0.292`). If multiple ciphertexts share the same `n` but different `e` values coprime to each other, apply the common modulus attack. If multiple ciphertexts exist with the same small `e` across different `n`, try Hastad's broadcast attack via CRT. If a decryption oracle distinguishes padding validity, apply Bleichenbacher or Manger. If a signing oracle refuses the target message, exploit multiplicative homomorphism to blind or factor the message. If `|p - q|` is small, apply Fermat factorization. If `p-1` is smooth, try Pollard's p-1. If provided with only the CRT exponents (dp, dq, qinv), enumerate small `k` to recover `p`. If partial key bits are known, use Coppersmith's small roots. If multiple public keys are present in a dataset, compute pairwise GCDs to find shared primes.
 
 ## Techniques
 
@@ -201,6 +201,51 @@ for n in moduli:
     if 1 < g < n:
         p = g; q = n // p
 ```
+
+### Boneh-Durfee Attack (Small d)
+
+When `d < N^0.292` and `e ≈ N`, Boneh-Durfee extends Wiener's bound using Coppersmith's method on the bivariate polynomial `f(x,y) = x*(A + y) + 1 mod e` where `A = (N+1)//2`. A lattice is built from monomial shifts of `f`, reduced via LLL, and the short vector reveals `(x,y) = (d, phi(N) - (N+1))`:
+
+```python
+# Boneh-Durfee: recover d when d < N^0.292 (e ≈ N)
+# SageMath lattice attack using Coppersmith / LLL
+def boneh_durfee(N, e, delta=0.292, m=3):
+    P.<x, y> = PolynomialRing(ZZ)
+    A = (N + 1) // 2
+    f = x * (A + y) + 1                 # f ≈ 0 (mod e)
+    X = int(N^delta); Y = int(N^0.5)
+
+    # Shift polynomials: x^i * f^k * e^(m-k), y^j * f^k * e^(m-k)
+    polys = []
+    for k in range(m + 1):
+        for i in range(m - k + 1):
+            polys.append(e^(m - k) * x^i * f^k)
+        for j in range(1, m - k + 1):
+            polys.append(e^(m - k) * y^j * f^k)
+
+    # Build lattice from coefficient vectors, scale by X^dx * Y^dy
+    monos = sorted(set(m for p in polys for m in p.monomials()))
+    M = matrix(ZZ, len(polys), len(monos))
+    for i, p in enumerate(polys):
+        for mono, coeff in p:
+            M[i, monos.index(mono)] = coeff
+    for j, mono in enumerate(monos):
+        M[:, j] *= int(X^mono.degree(x)) * int(Y^mono.degree(y))
+
+    B = M.LLL()
+
+    # Algebraic recovery from short vector
+    for row in B:
+        P_red = sum(int(row[j] / (int(X^monos[j].degree(x)) *
+                   int(Y^monos[j].degree(y)))) * monos[j]
+                   for j in range(len(monos)))
+        # Compute resultant in y, find integer root -> d
+        if P_red.degree(x) > 0:
+            pass  # full recovery in mimoo/RSA-and-LLL-attacks
+    return None
+```
+
+For CTF use, load [mimoo/RSA-and-LLL-attacks](https://github.com/mimoo/RSA-and-LLL-attacks) which includes complete recovery logic. Tuning: `m=3, delta=0.275` for fast results; `m=5` for the full `d < N^0.292` bound.
 
 ## Bypass
 

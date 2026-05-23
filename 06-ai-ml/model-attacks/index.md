@@ -13,10 +13,13 @@ Identify model access level
   │   ├─ Base + fine-tuned model pair → Weight perturbation negation
   │   ├─ Single model + target output → Model inversion (input reconstruction)
   │   ├─ LoRA adapter + base model → LoRA merging / weight visualization
-  │   └─ Encoder model → Encoder collision (find inputs with identical embeddings)
+  │   ├─ Encoder model → Encoder collision (find inputs with identical embeddings)
+  │   ├─ Single model → Attribute inference (infer training data attributes from model behavior)
+  │   └─ Single model → Model reconstruction (recover exact weights via ReLU boundary probing)
   ├─ Query API only
   │   ├─ Returns full logits/probabilities → Model extraction via student training
   │   ├─ Returns confidence scores → Membership inference by threshold
+  │   ├─ Returns confidence scores → Attribute inference (infer protected attributes from prediction differences)
   │   └─ Returns text completions → Training data extraction via prefix probing
   └─ Black-box with limited queries
       └─ Side-channel: timing, error messages, output length leakage
@@ -770,6 +773,205 @@ def gradient_leakage(model, shared_gradients, input_shape=(3, 32, 32), num_steps
 
 **Key insight:** Gradients directly expose information about the training data used to compute them. The optimization finds an input and label pair whose gradients match the shared gradients. This attack works even with gradient averaging and small batch sizes. Defenses include gradient perturbation (adding noise) and gradient compression.
 
+### 9. Attribute Inference Attack
+
+Given model predictions and partial feature knowledge, infer protected or sensitive attributes (race, gender, health status, location) of training data members. Unlike membership inference which determines whether a record was in training data, attribute inference reveals the *value* of an unknown attribute.
+
+The attack exploits how models learn correlations between features and protected attributes. Even if the protected attribute is not used as an input feature, the model's predictions may vary systematically based on that attribute due to correlated features in the training data.
+
+**Black-box variant:** Query the model with the target record's known features, varying only the unknown attribute across all possible values. The attribute value that produces the highest confidence or most distinct prediction is likely the correct one.
+
+**White-box variant:** Use gradient information to determine which input features are most influential for the prediction, then infer the protected attribute from the gradient patterns across feature groups.
+
+```python
+import torch
+import torch.nn.functional as F
+import numpy as np
+
+def attribute_inference_attack(model, target_record, known_features_mask, target_attribute_idx, attribute_values):
+    """
+    Infer a protected attribute from model predictions.
+
+    Args:
+        model: target PyTorch model (in eval mode)
+        target_record: full feature vector with the unknown attribute set to 0
+        known_features_mask: boolean mask, True for known features
+        target_attribute_idx: index of the attribute to infer
+        attribute_values: list of possible values for the target attribute
+
+    Returns:
+        inferred_value: the most likely attribute value
+        confidence_scores: dict mapping value -> model confidence
+    """
+    model.eval()
+    confidences = {}
+
+    for val in attribute_values:
+        # Create a query record with the attribute set to this candidate value
+        x = target_record.clone()
+        x[target_attribute_idx] = val
+
+        with torch.no_grad():
+            logits = model(x.unsqueeze(0))
+            probs = F.softmax(logits, dim=1)
+            # Use max probability as confidence proxy
+            confidence = probs.max().item()
+            confidences[val] = confidence
+
+    # The attribute value with highest confidence is the inferred one
+    inferred_value = max(confidences, key=confidences.get)
+    return inferred_value, confidences
+
+
+def attribute_inference_whitebox(model, target_record, known_features_mask, target_attribute_idx):
+    """
+    White-box attribute inference using gradient sensitivity.
+    Features with the highest gradient magnitude wrt the prediction
+    are most informative about the attribute.
+    """
+    model.eval()
+    x = target_record.clone().unsqueeze(0).requires_grad_(True)
+
+    with torch.enable_grad():
+        logits = model(x)
+        pred = logits.max(dim=1)[0]
+        grad = torch.autograd.grad(pred.sum(), x)[0].squeeze(0)
+
+    # Gradient at the attribute index indicates its influence on the prediction
+    attr_gradient = grad[target_attribute_idx].item()
+
+    return {"gradient_at_attribute": attr_gradient, "gradient_sensitivity": grad.norm().item()}
+```
+
+**Key insight:** Attribute inference exploits the model's learned correlations between features and protected attributes. Even models trained without protected attributes (fairness-constrained) can leak information through correlated proxy features. The black-box variant requires only `|attribute_values|` queries per target record. Confidence scores expose more information than hard labels alone.
+
+### 10. Model Reconstruction Attack
+
+Given API access to a model, reconstruct its exact weights through carefully crafted queries. This is distinguishable from model extraction (which builds a student model that approximates the teacher) because the goal is *exact weight recovery*.
+
+The attack exploits ReLU activation boundaries: for a ReLU-activated linear layer `h = ReLU(Wx + b)`, the activation pattern (which neurons are active/dead) forms a piecewise linear boundary. By finding the exact boundary hyperplanes through binary search, the attack recovers the weight row directions (signs). Then, differential queries with varying input scales recover the exact magnitudes.
+
+This attack is applicable to small models (tens of layers) with ReLU activations. Each layer requires `O(input_dim * output_dim)` queries.
+
+```python
+import torch
+import numpy as np
+
+def reconstruct_layer_weights(model, layer_idx, input_dim, output_dim, num_queries=1000):
+    """
+    Recover the weight matrix of a ReLU layer by probing activation boundaries.
+
+    For each output neuron, the ReLU boundary is W[i] @ x + b[i] = 0.
+    By finding points on this boundary via binary search, we recover the
+    normal vector which gives us the weight row up to scaling.
+
+    Args:
+        model: target model (provides access to hidden activations)
+        layer_idx: index of the target linear layer
+        input_dim: input dimension to the layer
+        output_dim: output dimension of the layer
+
+    Returns:
+        W_recovered: reconstructed weight matrix (output_dim x input_dim)
+        b_recovered: reconstructed bias vector (output_dim,)
+    """
+    def get_neuron_activation(x):
+        """Get pre-ReLU activation of neuron at layer_idx."""
+        with torch.no_grad():
+            h = x.clone()
+            for i, (w, b) in enumerate(zip(model.weights, model.biases)):
+                h = h @ w.T + b
+                if i < layer_idx:
+                    h = torch.relu(h)
+            return h.squeeze(0)
+
+    W_recovered = np.zeros((output_dim, input_dim))
+    b_recovered = np.zeros(output_dim)
+
+    for neuron in range(output_dim):
+        # Find input pairs where the neuron boundary is crossed
+        for _ in range(20):
+            x1 = torch.randn(input_dim) * 5.0
+            x2 = torch.randn(input_dim) * 5.0
+
+            a1 = get_neuron_activation(x1)[neuron].item()
+            a2 = get_neuron_activation(x2)[neuron].item()
+
+            if a1 * a2 < 0:  # boundary crossed on the segment
+                # Binary search to find boundary point
+                lo, hi = x1.clone(), x2.clone()
+                for _ in range(30):
+                    mid = (lo + hi) / 2
+                    a_mid = get_neuron_activation(mid)[neuron].item()
+                    if a_mid * a1 > 0:
+                        lo = mid
+                    else:
+                        hi = mid
+
+                boundary_point = (lo + hi) / 2
+
+                # Find another boundary point to determine the normal
+                offset = torch.randn(input_dim) * 0.1
+                p_plus = boundary_point + offset
+                a_plus = get_neuron_activation(p_plus)[neuron].item()
+
+                lo2, hi2 = p_plus.clone(), boundary_point.clone()
+                for _ in range(30):
+                    mid2 = (lo2 + hi2) / 2
+                    a_mid2 = get_neuron_activation(mid2)[neuron].item()
+                    if a_mid2 * a_plus > 0:
+                        lo2 = mid2
+                    else:
+                        hi2 = mid2
+
+                bp2 = (lo2 + hi2) / 2
+
+                # The normal direction gives us weight row (up to sign and scale)
+                normal = (boundary_point - bp2).numpy()
+                W_recovered[neuron] = normal / np.linalg.norm(normal)
+                break
+
+    # Sign disambiguation: check which side gives positive activation
+    for neuron in range(output_dim):
+        row = torch.tensor(W_recovered[neuron], dtype=torch.float32)
+        x_test = torch.randn(input_dim)
+        a_test = get_neuron_activation(x_test)[neuron].item()
+        pred = (row @ x_test).item()
+        if (a_test > 0 and pred < 0) or (a_test < 0 and pred > 0):
+            W_recovered[neuron] = -W_recovered[neuron]
+
+    return W_recovered, b_recovered
+
+
+def reconstruct_weight_magnitudes(model, W_normalized, layer_idx, input_dim, output_dim):
+    """
+    After recovering weight directions (unit normals), recover exact magnitudes
+    by querying with scaled inputs. For ReLU: ReLU(c * Wx) = c * ReLU(Wx),
+    so scaling the input reveals the weight norm through the output scale.
+    """
+    def get_output_norm(x):
+        with torch.no_grad():
+            h = x.clone()
+            for i, (w, b) in enumerate(zip(model.weights, model.biases)):
+                h = h @ w.T + b
+                if i < layer_idx:
+                    h = torch.relu(h)
+                if i == layer_idx:
+                    return h.norm().item()
+        return 0.0
+
+    magnitudes = []
+    for neuron in range(output_dim):
+        row = torch.tensor(W_normalized[neuron], dtype=torch.float32)
+        x = row / row.norm()  # unit vector in weight direction
+        out1 = get_output_norm(x * 1.0)
+        magnitudes.append(out1 if out1 > 0 else 0.0)
+
+    return np.array(magnitudes)
+```
+
+**Key insight:** ReLU creates piecewise linear decision regions. The boundaries between active/dead regions are hyperplanes defined by the weight rows. Finding these boundaries via binary search recovers the weight direction. This is fundamentally different from model extraction (which trains a separate student model) -- model reconstruction aims for *bit-exact* or *near-exact* weight recovery. The attack is query-efficient for small models but scales poorly to large hidden dimensions.
+
 ## Bypass
 
 ### When API Returns Only Top-1 Label (No Confidence)
@@ -809,6 +1011,8 @@ def gradient_leakage(model, shared_gradients, input_shape=(3, 32, 32), num_steps
 - Membership inference: correctly identifies which samples were in training set
 - Training data extraction: memorized text repeats across independent generations from same prefix
 - Gradient leakage: recovered image matches the private training image used to compute gradients
+- Attribute inference: inferred attribute matches true attribute significantly better than random (>50% accuracy for binary attributes, >25% for 4-class)
+- Model reconstruction: reconstructed weights produce identical outputs to the target model on random test inputs (MSE < 1e-6 or exact activation pattern match)
 
 ## Pitfalls
 
@@ -822,3 +1026,9 @@ def gradient_leakage(model, shared_gradients, input_shape=(3, 32, 32), num_steps
 - **Memorization vs generation:** Not all high-confidence outputs indicate training data memorization; common patterns (dates, URLs, public figures) may be generated rather than memorized. Cross-verify with multiple generation attempts
 - **Model update poisoning:** If the model updates over time (online learning), extraction results are snapshots that may not reflect the current state
 - **Quantization effects:** QLoRA and other quantization schemes lose precision in weight deltas; dequantize before merging or expect numerical noise in the results
+- **Fairness constraints vs attribute inference:** Models trained with strong fairness constraints (adversarial debiasing, equalized odds) may resist attribute inference; accuracy may be close to random
+- **Proxy feature correlation:** Attribute inference exploits correlated proxy features (zip code for race, job title for gender), not the attribute itself. If proxies are removed from training data, the attack weakens
+- **ReLU-only reconstruction:** Model reconstruction via boundary probing only works for ReLU-activated networks; non-ReLU activations (sigmoid, tanh, GELU) do not have exact linear boundaries
+- **Pre-activation access required:** Model reconstruction requires access to intermediate pre-activation values (pre-logit layer outputs), which many production APIs do not expose
+- **Numerical precision limits:** Floating-point rounding errors accumulate across layers during model reconstruction, limiting recovery precision for deep networks
+- **Scalability bound:** Model reconstruction is not feasible for large models (LLMs with 7B+ parameters) due to quadratic query complexity in hidden dimensions

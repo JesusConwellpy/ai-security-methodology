@@ -10,7 +10,7 @@ Deterministic PRNGs are entirely predictable once their internal state is recove
 
 ## Decision Tree
 
-Identify the PRNG algorithm. If the outputs are Python integers in `[0, 2^32)`, recover the MT19937 state with `untemper`. If the outputs are Python `random.random()` floats, collect ~3360 samples and use a precomputed GF(2) matrix. If the outputs are from Java's `Random`, exploit the 48-bit LCG with 16-bit truncation. If the PRNG is seeded with `time(NULL)`, compute the seed from the file timestamp or connection time. If the outputs are from V8's `Math.random()`, use Z3 with `QF_BV` theory on the XorShift128+ transformation. If the outputs are from an LCG with known modulus, recover parameters from consecutive outputs. If the PRNG uses only XOR, shifts, and rotations, treat it as a GF(2) linear system and invert the transformation matrix. If the PRNG outputs are truncated to fewer bits, treat the hidden bits as unknowns and solve with lattice reduction or constraint propagation.
+Identify the PRNG algorithm. If the outputs are Python integers in `[0, 2^32)`, recover the MT19937 state with `untemper`. If the outputs are Python `random.random()` floats, collect ~3360 samples and use a precomputed GF(2) matrix. If the outputs are from Java's `Random`, exploit the 48-bit LCG with 16-bit truncation. If the PRNG is seeded with `time(NULL)`, compute the seed from the file timestamp or connection time. If the outputs are from V8's `Math.random()`, use Z3 with `QF_BV` theory on the XorShift128+ transformation. If the outputs are from an LCG with known modulus, recover parameters from consecutive outputs. If the PRNG uses only XOR, shifts, and rotations, treat it as a GF(2) linear system and invert the transformation matrix. If the PRNG is a combined LCG (multiple LCGs summed, e.g., Wichmann-Hill), recover each component state independently via lattice CVP on the linear combination. If the PRNG outputs are truncated to fewer bits, treat the hidden bits as unknowns and solve with lattice reduction or constraint propagation.
 
 ## Techniques
 
@@ -213,6 +213,65 @@ def decrypt(cipher_hex, seed):
         stream += struct.pack("<f", x)[-2:]
     return bytes(a ^ b for a, b in zip(ct, stream[:len(ct)]))
 ```
+
+### Combined LCG (Wichmann-Hill)
+
+Combined LCGs sum multiple independent LCGs to increase period. Each component is individually weak and recoverable via lattice reduction. For Wichmann-Hill (`x = 171*x % 30269`, `y = 172*y % 30307`, `z = 170*z % 30323`), output is `(x/30269 + y/30307 + z/30323) % 1`:
+
+```python
+# Recover Wichmann-Hill (x,y,z) states from 3+ outputs via lattice CVP
+def break_wh(outputs):
+    """Recover (x,y,z) states from consecutive Wichmann-Hill outputs."""
+    mods = [30269, 30307, 30323]
+    P = prod(mods)
+    # Scale: output*P ≈ x*P/30269 + y*P/30307 + z*P/30323 (mod P)
+    target = vector(ZZ, [int(round(o * P)) for o in outputs[:3]])
+
+    # CVP embedding: [diag(mods) | 0; target | 1], then LLL
+    M = matrix(ZZ, 4, 4)
+    for i in range(3): M[i, i] = mods[i]
+    M[3] = vector(ZZ, list(target) + [1])
+    M = M.LLL()
+
+    for row in M:
+        if row[3] in (1, -1):
+            sol = [abs(int(row[i] - row[3] * target[i])) // (P // mods[i])
+                   for i in range(3)]
+            if all(0 <= sol[i] < mods[i] for i in range(3)):
+                return tuple(sol)
+    return None
+```
+
+General principle: any combined LCG where component states are bounded independently can be split via lattice (CVP or embedding into SVP).
+
+### Truncated LCG Recovery via Lattice
+
+When an LCG outputs only the high bits (e.g., top 16 of 32), hidden low bits are recoverable via lattice. For `s_{n+1} = a*s_n + c mod m` with `t_i = s_i >> r` revealed:
+
+```python
+def recover_truncated_lcg(a, c, m, truncated, r):
+    """Recover full LCG state from truncated high-bit outputs."""
+    n = len(truncated) - 1
+    # Lattice captures the recurrence constraint on hidden bits
+    B = matrix(ZZ, n + 2, n + 2)
+    for i in range(n):
+        B[i, i] = 1
+        B[i, n] = a^(i + 1)
+    B[n, n] = m
+    B[n+1, n] = 1
+
+    B = B.LLL()
+    for row in B:
+        hidden = [int(v) & ((1 << r) - 1) for v in row[:n]]
+        if not all(0 <= v < (1 << r) for v in hidden):
+            continue
+        states = [(truncated[i] << r) + hidden[i] for i in range(n + 1)]
+        if all((a * states[i] + c) % m == states[i + 1] for i in range(n)):
+            return states
+    return None
+```
+
+For non-power-of-two moduli, frame as Hidden Number Problem (HNP) using Babai's nearest plane. Required samples: roughly `ceil(bit_length / r) + 4`.
 
 ## Bypass
 

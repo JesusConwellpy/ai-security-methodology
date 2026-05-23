@@ -20,6 +20,9 @@ Evidence characteristics: OS type and version (Windows, Linux, macOS) determines
 8. Check clipboard: `vol3 -f memory.dmp windows.clipboard`
 9. String search: `strings -a -n 6 memory.dmp | grep -i "flag\|password\|key"`
 10. If Volatility fails: GIMP raw visual inspection, manual string carving
+11. If macOS dump: `vol3 -f memory.dmp macos.check_mac_version`, check Keychain via `macos.keychaindump`, parse Unified Logs with `macos.unifiedlogs`
+12. If hibernation file (hiberfil.sys): decompress with `hibr2bin -o memory.dmp hiberfil.sys`, then run Volatility as raw dump
+13. If crash dump: use `vol3 -f memory.dmp windows.crashinfo` to identify dump type, extract targeted process memory
 
 ## Techniques
 
@@ -197,6 +200,188 @@ echo "deadbeef..." | xxd -r -p > master.key
 
 # RSA key detection
 rsakeyfind memory.elf
+```
+
+### macOS Memory Forensics
+
+```bash
+# Volatility 3 macOS profile detection
+vol3 -f macmem.dmp macos.check_mac_version
+vol3 -f macmem.dmp macos.list_sessions
+
+# Process enumeration on macOS
+vol3 -f macmem.dmp macos.pslist
+vol3 -f macmem.dmp macos.pstasks
+vol3 -f macmem.dmp macos.bash_env
+
+# Code signing verification (flag unsigned processes)
+python3 << 'EOF'
+import subprocess
+out = subprocess.check_output(
+    ["vol3", "-f", "macmem.dmp", "macos.pslist", "--output=csv"])
+for line in out.decode().strip().split('\n')[1:]:
+    cols = line.split(',')
+    if len(cols) >= 5:
+        pid, name, path = cols[1], cols[2], cols[3]
+        try:
+            cs_out = subprocess.check_output(
+                ["vol3", "-f", "macmem.dmp", "macos.check_code_signature",
+                 "--pid", pid], stderr=subprocess.DEVNULL)
+            if "unsigned" in cs_out.decode().lower():
+                print(f"UNSIGNED: PID {pid} {name}")
+        except:
+            pass
+EOF
+
+# Keychain extraction from memory
+vol3 -f macmem.dmp macos.keychaindump
+
+# Search for binary plist data in memory (bplist00 magic)
+python3 << 'EOF'
+with open("macmem.dmp", "rb") as f:
+    data = f.read()
+pos = 0
+count = 0
+while True:
+    idx = data.find(b"bplist00", pos)
+    if idx < 0 or count >= 10:
+        break
+    plist_start = idx & ~0xFFF
+    plist_data = data[plist_start:plist_start + 0x10000]
+    with open(f"keychain_{count}.bplist", "wb") as out:
+        out.write(plist_data)
+    print(f"Extracted binary plist at offset {plist_start}")
+    pos = idx + 1
+    count += 1
+EOF
+
+# FSEvents extraction (file system event history)
+vol3 -f macmem.dmp macos.fsevents
+strings -a macmem.dmp | grep -E "/Users/.*/Documents/" | sort -u | head -20
+
+# Unified Log extraction (macOS consolidated log)
+vol3 -f macmem.dmp macos.unifiedlogs
+vol3 -f macmem.dmp macos.unifiedlogs --level 3
+
+# Parse specific log subsystems
+vol3 -f macmem.dmp macos.unifiedlogs --subsystem com.apple.authd
+
+# TCC database (Transparency, Consent, and Control) - app permissions
+vol3 -f macmem.dmp macos.filescan | grep -i tcc
+# Extract TCC.db from memory and query
+# vol3 -f macmem.dmp macos.dumpfiles --virtaddr 0x...
+# sqlite3 dumped_tcc.db "SELECT * FROM access;"
+
+# Launchd plist extraction (persistence mechanisms)
+vol3 -f macmem.dmp macos.filescan | grep -i "LaunchAgents\|LaunchDaemons"
+# vol3 -f macmem.dmp macos.dumpfiles --physaddr 0x...
+
+# Network connections on macOS
+vol3 -f macmem.dmp macos.netstat
+vol3 -f macmem.dmp macos.socket_handles
+```
+
+### Windows Hibernation File and Crash Dump Analysis
+
+```bash
+# Hibernation file decompression (hiberfil.sys)
+# hiberfil.sys = compressed memory snapshot taken at sleep/hibernate
+hibr2bin -o memory.dmp hiberfil.sys
+# Alternative: use Hibr2Dmp
+hibr2dmp -f hiberfil.sys -o memory.dmp
+
+# Verify decompressed dump type
+file memory.dmp
+# Expected: "Windows 64-bit memory dump" or similar
+
+# Analyze decompressed hibernation with Volatility
+vol3 -f memory.dmp windows.info
+vol3 -f memory.dmp windows.pslist
+vol3 -f memory.dmp windows.netscan
+
+# Parse hibernation file header
+python3 << 'EOF'
+import struct
+with open("hiberfil.sys", "rb") as f:
+    header = f.read(4096)
+signature = header[:4]
+if signature == b"hibr":
+    print("Hibernation file (pre-Win8)")
+elif signature == b"\xDE\xAD\xBE\xEF":
+    print("Hibernation file (Win8+)")
+else:
+    print(f"Unknown signature: {signature.hex()}")
+page_size = struct.unpack_from("<I", header, 0x08)[0]
+total_pages = struct.unpack_from("<I", header, 0x10)[0]
+compressed_size = struct.unpack_from("<I", header, 0x18)[0]
+print(f"Page size: {page_size}, Total pages: {total_pages}, Compressed: {compressed_size}")
+EOF
+
+# Manual page descriptor scan for residual data
+python3 << 'EOF'
+import struct
+with open("hiberfil.sys", "rb") as f:
+    data = f.read()
+page_size = 4096
+desc_count = len(data) // (page_size + 16)
+for i in range(min(desc_count, 100)):
+    desc_off = i * (page_size + 16) + 0x1000
+    orig = struct.unpack_from("<I", data, desc_off)[0]
+    comp = struct.unpack_from("<I", data, desc_off + 4)[0]
+    flags = struct.unpack_from("<I", data, desc_off + 12)[0]
+    if flags != 0:
+        print(f"Page {i}: original={orig}, compressed={comp}, flags={flags:#x}")
+        if 0 < orig <= page_size:
+            page_data = data[desc_off + 16:desc_off + 16 + comp]
+            if b"CTF{" in page_data or b"flag" in page_data:
+                print(f"  *** FLAG in page {i}")
+EOF
+
+# Crash dump type identification
+vol3 -f crash.dmp windows.crashinfo
+vol3 -f crash.dmp windows.info
+
+# Extract specific process from crash dump
+vol3 -f crash.dmp windows.pslist
+vol3 -f crash.dmp windows.memdump --pid <PID> -D extracted/
+
+# Minidump header parsing
+python3 << 'EOF'
+import struct
+with open("minidump.dmp", "rb") as f:
+    header = f.read(32)
+if header[:4] == b"MDMP":
+    version = struct.unpack_from("<I", header, 4)[0]
+    streams = struct.unpack_from("<I", header, 8)[0]
+    stream_dir_rva = struct.unpack_from("<I", header, 12)[0]
+    print(f"Minidump v{version}, {streams} streams")
+    f.seek(stream_dir_rva)
+    for s in range(streams):
+        stype = struct.unpack_from("<I", f.read(12), 0)[0]
+        ssize = struct.unpack_from("<I", f.read(12), 4)[0]
+        srva = struct.unpack_from("<I", f.read(12), 8)[0]
+        type_names = {0: "Unused", 2: "ThreadList", 3: "ModuleList",
+                      4: "MemoryList", 5: "Exception", 6: "SystemInfo"}
+        print(f"  Stream {s}: {type_names.get(stype, 'Unknown')}, size={ssize}")
+        f.seek(12 * (s + 1) + stream_dir_rva)
+EOF
+
+# Key extraction targets in hibernation files
+# Network connection state at time of hibernation
+vol3 -f memory.dmp windows.netscan
+# Registry hives (SYSTEM, SAM, SECURITY, SOFTWARE)
+vol3 -f memory.dmp windows.registry.hivelist
+vol3 -f memory.dmp windows.hashdump --sys-offset <offset> --sam-offset <offset>
+# Clipboard content (copy-paste at hibernation)
+vol3 -f memory.dmp windows.clipboard
+# Open file handles
+vol3 -f memory.dmp windows.handles
+# Command history
+vol3 -f memory.dmp windows.cmdline
+vol3 -f memory.dmp windows.cmdhistory
+# Registry key inspection for system info
+vol3 -f memory.dmp windows.registry.printkey \
+  --key "ControlSet001\\Control\\ComputerName\\ComputerName"
 ```
 
 ## Bypass

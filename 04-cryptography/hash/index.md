@@ -10,7 +10,7 @@ Merkle-Damgard hash functions (MD5, SHA-1, SHA-256) are vulnerable to length ext
 
 ## Decision Tree
 
-First identify the hash construction. If the MAC is `H(secret || message)` with MD5, SHA-1, or SHA-256, attempt length extension using `hashpumpy` or `hlextend`. If the MAC uses CRC32, exploit its GF(2) linearity to forge arbitrary tags. If the challenge involves collision resistance, check whether the hash is MD5 or SHA-1 (both have practical collision attacks). If the hash is iterated many times (hash chains), check the output size -- truncated hashes (e.g., MD5 truncated to 64 bits) have short cycles that can be detected with Floyd's or Brent's algorithm. If hash outputs are XOR-combined for integrity verification, solve the linear system over GF(2). If the hash is a custom construction using only XOR and rotations (no S-boxes, no addition), build the GF(2) transformation matrix and invert it. If the hash is used in a compression-then-encrypt scheme, measure ciphertext length as a side channel.
+First identify the hash construction. If the MAC is `H(secret || message)` with MD5, SHA-1, or SHA-256, attempt length extension using `hashpumpy` or `hlextend`. If the MAC uses CRC32, exploit its GF(2) linearity to forge arbitrary tags. If the challenge involves collision resistance, check whether the hash is MD5 or SHA-1 (both have practical collision attacks). If the hash is iterated many times (hash chains), check the output size -- truncated hashes (e.g., MD5 truncated to 64 bits) have short cycles that can be detected with Floyd's or Brent's algorithm. If hash outputs are XOR-combined for integrity verification, solve the linear system over GF(2). If the hash is a custom construction, classify its structure (ARX, XOR-only, sponge) and apply structural analysis: differential trails for ARX, GF(2) inversion for XOR-only, capacity check for sponges. If the hash uses only XOR and rotations, build the GF(2) transformation matrix and invert it. If the hash is used in a compression-then-encrypt scheme, measure ciphertext length as a side channel.
 
 ## Techniques
 
@@ -175,6 +175,51 @@ def reverse_hash_states(states):
     return blocks
 # Brute-force printable 4-byte blocks matching each hash value
 ```
+
+### Custom Hash Structural Analysis
+
+When a challenge implements a custom hash (non-standard ARX construction, custom compression function, or reduced-round variant), analyze its structure systematically:
+
+```python
+# Step 1: Classify the construction
+# - ARX (Add-Rotate-XOR): non-linearity only from addition carries
+# - XOR-only: fully GF(2)-linear -> invertible regardless of output size
+# - Sponge: security depends on capacity (rate+capacity = state size)
+# - Merkle-Damgard: vulnerable to length extension
+
+# Step 2: Differential cryptanalysis for ARX
+# Find high-probability differential trails through the round function
+def find_arx_differential(round_fn, input_bits, output_diff, trials=2000):
+    best = (0, None)
+    for delta_in in range(1, min(1 << 16, 1 << input_bits)):
+        matches = 0
+        for _ in range(trials):
+            x = randint(0, (1 << input_bits) - 1)
+            y = round_fn(x) ^ round_fn(x ^ delta_in)
+            if y == output_diff:
+                matches += 1
+        if matches > best[0]:
+            best = (matches, delta_in)
+    return best[1], best[0] / trials
+
+# Step 3: Rotational cryptanalysis for ARX
+# Check if f(x <<< r) == f(x) <<< r with significant probability
+# If yes and rounds are few, full collision may be practical
+
+# Step 4: Fixed point search
+def find_fixed_points(hash_fn, bits, samples=100000):
+    for _ in range(samples):
+        x = randint(0, (1 << bits) - 1)
+        if hash_fn(x) == x:
+            return x
+    return None
+
+# Step 5: For reduced-round variants
+# Fewer rounds -> lower diffusion -> differential/linear attack practical
+# Compare to standard: < 50% of rounds -> expect practical collision
+```
+
+Key indicators: XOR-only hashes are GF(2)-linear and fully invertible; small-state sponge (capacity < 256 bit) admits algebraic state recovery; ARX with < 8 rounds for 32-bit word is vulnerable to differential attacks under 2^32 complexity; reused round constants leak structural information.
 
 ## Bypass
 

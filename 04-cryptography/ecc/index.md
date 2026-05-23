@@ -10,7 +10,7 @@ The discrete logarithm problem (ECDLP) is the foundation of ECC security. It bre
 
 ## Decision Tree
 
-Start by computing the curve discriminant `4a^3 + 27b^2 mod p`. If it is zero, the ECDLP reduces to the additive or multiplicative group of the field and is trivially solvable. If nonzero, check `E.order() == p` for Smart's attack (anomalous curve). If neither, factor the curve order: if it is smooth (all small prime factors), use Pohlig-Hellman to decompose the DLP into small subgroups and solve each independently with BSGS or Sage's `discrete_log`. If the challenge provides multiple ECDSA signatures, check for repeated `r` values (nonce reuse). If the challenge is on Ed25519 with a cofactor-related key derivation scheme, exploit the 8 torsion points. If the group is defined by `x^2 + y^2 = 1 mod p` (clock group), note the order is `p+1` and check if it is smooth. If none of these apply, check whether the generator or target point lies on a different curve with weaker security (invalid curve attack).
+Start by computing the curve discriminant `4a^3 + 27b^2 mod p`. If it is zero, the ECDLP reduces to the additive or multiplicative group of the field and is trivially solvable. If nonzero, check `E.order() == p` for Smart's attack (anomalous curve). If neither, factor the curve order: if it is smooth (all small prime factors), use Pohlig-Hellman to decompose the DLP into small subgroups and solve each independently with BSGS or Sage's `discrete_log`. If the challenge provides multiple ECDSA signatures, check for repeated `r` values (nonce reuse). If the challenge is on Ed25519 with a cofactor-related key derivation scheme, exploit the 8 torsion points. If the group is defined by `x^2 + y^2 = 1 mod p` (clock group), note the order is `p+1` and check if it is smooth. If the curve is supersingular or has small embedding degree (check `E.order() | p^k - 1` for `k = 1..6`), transfer the ECDLP to `GF(p^k)*` via Weil/Tate pairing (MOV/Frey-Ruck attack). If none of these apply, check whether the generator or target point lies on a different curve with weaker security (invalid curve attack).
 
 ## Techniques
 
@@ -164,6 +164,45 @@ When point validation is absent, send crafted points on a curve with small subgr
 # Leaks secret key bits modulo the small order
 # Repeat with different small-order curves for full recovery via CRT
 ```
+
+### MOV / Frey-Ruck Attack (Small Embedding Degree)
+
+When the embedding degree `k` (smallest `k` where `E.order() | p^k - 1`) is small, the ECDLP transfers to `GF(p^k)*` via Weil or Tate pairing. If `k ≤ 6`, the finite field DLP is subexponential (Index Calculus) and far easier than ECDLP. Supersingular curves always have `k ≤ 6`:
+
+```python
+# MOV attack: transfer ECDLP to finite field DLP via Weil pairing
+def mov_attack(p, a, b, G, Q):
+    E = EllipticCurve(GF(p), [a, b])
+    n = E.order()
+
+    k = 1
+    while k < 20:                          # find embedding degree
+        if n.divides(p^k - 1): break
+        k += 1
+    if k >= 12:
+        print("Embedding degree too large"); return None
+
+    # Extend curve, find independent point R of order n
+    Ek = EllipticCurve(GF(p^k), [a, b])
+    Gk, Qk = Ek(G), Ek(Q)
+    while True:
+        R = Ek.random_point()
+        R = (int(p^k - 1) // int(n)) * R   # kill cofactor
+        if R != Ek(0) and R.weil_pairing(Gk, n) != 1:
+            break
+
+    # Weil pairing maps to GF(p^k)*
+    eG = Gk.weil_pairing(R, n)
+    eQ = Qk.weil_pairing(R, n)
+    return discrete_log(eQ, eG)  # Index Calculus in multiplicative group
+
+# Frey-Ruck: use tate_pairing() in Sage for improved efficiency
+# E = EllipticCurve(GF(p), [a, b])
+# if E.is_supersingular():  # embedding degree ≤ 6 guaranteed
+#     d = mov_attack(p, a, b, G, Q)
+```
+
+Before attempting MOV, check `E.is_supersingular()` and compute `E.order().divides(p^k - 1)` for increasing `k`. Sage's `discrete_log` on `GF(p^k)*` automatically uses Index Calculus for `k > 1`.
 
 ## Bypass
 

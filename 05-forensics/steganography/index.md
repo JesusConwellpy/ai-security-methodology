@@ -20,6 +20,8 @@ Evidence characteristics: file format structure determines hiding spots (metadat
 8. File-within-file: `binwalk --dd=".*"` to carve embedded documents
 9. If standard tools fail: try custom bitplane extraction, non-standard LSB positions, frequency domain analysis, whitespace/zero-width character encoding
 10. Check for encryption layer (XOR, ROT, base64) after extraction
+11. Examine video containers: `mp4info file.mp4`, check for custom UUID atoms, extra tracks, injected data between atoms
+12. Analyze network captures: `tshark -r capture.pcap -T fields -e ip.id`, check for anomalies in TCP ISN, HTTP headers, DNS queries, TLS handshake fields
 
 ## Techniques
 
@@ -280,6 +282,242 @@ for frame in frames:
         hidden += frame[eoi+2:]
 print(hidden.decode(errors='ignore'))
 "
+```
+
+### Video Container and Codec Steganography
+
+```bash
+# MP4/MOV atom tree inspection
+mp4info file.mp4
+mp4file --dump file.mp4                 # Detailed atom structure
+python3 -c "
+import struct
+with open('file.mp4', 'rb') as f:
+    data = f.read()
+pos = 0
+while pos < len(data) - 8:
+    size = struct.unpack_from('>I', data, pos)[0]
+    atom = data[pos+4:pos+8]
+    print(f'Offset {pos}: {atom.decode()} ({size} bytes)')
+    if size == 0: break
+    pos += size
+"
+
+# Extract data between atoms (padding gaps)
+python3 << 'EOF'
+import struct
+with open('file.mp4', 'rb') as f:
+    data = f.read()
+pos = 0
+gap_data = b''
+while pos < len(data) - 8:
+    size = struct.unpack_from('>I', data, pos)[0]
+    if size < 8: break
+    gap = data[pos + size:pos + size + 4]
+    if any(b != 0 for b in gap):
+        gap_data += gap
+    pos += size
+print('Gap data:', gap_data.decode(errors='ignore'))
+EOF
+
+# Extract custom UUID atoms
+python3 << 'EOF'
+import struct
+with open('file.mp4', 'rb') as f:
+    data = f.read()
+pos = 0
+while pos < len(data) - 8:
+    size = struct.unpack_from('>I', data, pos)[0]
+    atom = data[pos+4:pos+8]
+    if atom == b'uuid':
+        uuid_bytes = data[pos+8:pos+24].hex()
+        payload = data[pos+24:pos+size]
+        print(f'UUID: {uuid_bytes}, Payload: {payload[:64].decode(errors="ignore")}')
+    if size == 0: break
+    pos += size
+EOF
+
+# Audio track stego extraction from video
+ffmpeg -i file.mp4 -map 0:a:0 -c copy audio_stego.aac
+ffmpeg -i file.mp4 -map 0:a:0 audio_stego.wav
+sox audio_stego.wav -n spectrogram -o audio_stego_spec.png
+stegolsb wavsteg -r -i audio_stego.wav -o out.bin -n 2 -b 1000
+
+# H.264 macroblock-level: DCT coefficient LSB extraction
+ffmpeg -i file.mp4 -vcodec copy -bsf h264_mp4toannexb -f h264 raw.h264
+python3 << 'EOF'
+with open('raw.h264', 'rb') as f:
+    data = f.read()
+pos = 0
+nal_count = 0
+while pos < len(data) - 4:
+    if data[pos:pos+3] == b'\x00\x00\x01' or data[pos:pos+4] == b'\x00\x00\x00\x01':
+        start = pos + (4 if data[pos:pos+4] == b'\x00\x00\x00\x01' else 3)
+        nal_type = data[start] & 0x1F
+        if nal_type == 1:
+            slice_data = data[start:start+100]
+            bits = [b & 1 for b in slice_data[5:]]
+            chars = ''.join(chr(int(''.join(str(b) for b in bits[i:i+8]), 2))
+                          for i in range(0, len(bits)-7, 8))
+            printable = ''.join(c if 32 <= ord(c) < 127 else '' for c in chars)
+            if printable:
+                print(f'NAL {nal_count}: {printable[:80]}')
+        nal_count += 1
+        pos = start + 1
+    else:
+        pos += 1
+EOF
+
+# Motion vector analysis
+ffprobe -hide_banner -show_frames file.mp4 2>/dev/null | grep "motion_vector" | head -20
+
+# Multi-stream video: extract all mapped streams
+ffmpeg -i file.mp4 2>&1 | grep Stream
+ffmpeg -i file.mp4 -map 0:2 -c copy hidden_stream.mp4
+```
+
+### Network Protocol Steganography
+
+```bash
+# TCP ISN field extraction (32-bit Initial Sequence Number)
+tshark -r capture.pcap -T fields -e tcp.srcport -e tcp.seq -e tcp.ack \
+  -Y "tcp.flags.syn==1 and tcp.flags.ack==0" | head -20
+
+# Decode ISN LSB as carrier
+python3 << 'EOF'
+import subprocess
+out = subprocess.check_output(
+    ["tshark", "-r", "capture.pcap", "-T", "fields", "-e", "tcp.seq",
+     "-Y", "tcp.flags.syn==1 and tcp.flags.ack==0"])
+bits = [str(int(seq.strip()) & 1) for seq in out.decode().strip().split('\n') if seq.strip()]
+data = bytes(int(''.join(bits[i:i+8]), 2) for i in range(0, len(bits)-7, 8))
+print('ISN LSB message:', data.decode(errors='ignore'))
+EOF
+
+# IP Identification field (16-bit, often sequential)
+tshark -r capture.pcap -T fields -e ip.id -e ip.src -Y "ip" | head -30
+
+# Detect non-random IP IDs (possible covert channel)
+python3 << 'EOF'
+with open('capture.pcap', 'rb') as f:
+    data = f.read()
+import struct
+pos = 0
+ids = []
+while pos < len(data) - 20:
+    if data[pos:pos+2] == b'\x08\x00':
+        ip_len = (data[pos+16] & 0x0F) * 4
+        if ip_len >= 20:
+            ip_id = struct.unpack_from('>H', data, pos + 18)[0]
+            ids.append(ip_id)
+            pos += 14 + ip_len
+    else:
+        pos += 1
+diffs = [ids[i+1] - ids[i] for i in range(len(ids)-1)]
+print(f"IP IDs: {ids[:30]}...")
+print(f"Diffs: {diffs[:30]}")
+EOF
+
+# HTTP header cookie value extraction
+tshark -r capture.pcap -Y "http.request" -T fields -e http.cookie | head -10
+
+# Extract binary from cookie character parity
+python3 << 'EOF'
+import subprocess
+out = subprocess.check_output(
+    ["tshark", "-r", "capture.pcap", "-Y", "http.request",
+     "-T", "fields", "-e", "http.cookie"])
+bits = []
+for line in out.decode().strip().split('\n'):
+    if not line.strip(): continue
+    for ch in line:
+        bits.append(str(ord(ch) & 1))
+data = bytes(int(''.join(bits[i:i+8]), 2) for i in range(0, len(bits)-7, 8))
+print('Cookie bit message:', data.decode(errors='ignore'))
+EOF
+
+# DNS query name encoding
+tshark -r capture.pcap -Y "dns.qry.name" -T fields -e dns.qry.name | head -20
+
+# Decode DNS exfiltration via hex-encoded subdomains
+python3 << 'EOF'
+import subprocess
+out = subprocess.check_output(
+    ["tshark", "-r", "capture.pcap", "-Y", "dns.qry.type==1",
+     "-T", "fields", "-e", "dns.qry.name"])
+for line in out.decode().strip().split('\n'):
+    if not line.strip(): continue
+    labels = line.strip('.').split('.')
+    if len(labels) >= 3:
+        try:
+            decoded = bytes.fromhex(labels[0])
+            if decoded.isprintable():
+                print(f'DNS hex: {decoded.decode(errors="ignore")}')
+        except ValueError:
+            pass
+EOF
+
+# DNS TXT record abuse
+tshark -r capture.pcap -Y "dns.txt" -T fields -e dns.txt -e dns.resp.name | head -10
+
+# TLS ClientHello random bytes extraction
+tshark -r capture.pcap -Y "tls.handshake.type==1" -T fields \
+  -e tls.handshake.random -e tls.handshake.session_id | head -5
+
+# Extract LSB from ClientHello random (32 bytes per connection)
+python3 << 'EOF'
+import subprocess
+out = subprocess.check_output(
+    ["tshark", "-r", "capture.pcap", "-Y", "tls.handshake.type==1",
+     "-T", "fields", "-e", "tls.handshake.random"])
+bits = []
+for line in out.decode().strip().split('\n'):
+    if not line.strip(): continue
+    try:
+        rand_bytes = bytes.fromhex(line.replace(':', ''))
+        bits.extend(str(b & 1) for b in rand_bytes)
+    except ValueError:
+        pass
+data = bytes(int(''.join(bits[i:i+8]), 2) for i in range(0, len(bits)-7, 8))
+print('TLS random LSB:', data.decode(errors='ignore'))
+EOF
+
+# TLS SNI field covert channel
+tshark -r capture.pcap -Y "tls.handshake.extensions_server_name" \
+  -T fields -e tls.handshake.extensions_server_name | head -10
+
+# ICMP payload extraction
+tshark -r capture.pcap -Y "icmp" -T fields -e data.data | head -10
+
+# Decode ICMP echo data
+python3 << 'EOF'
+import subprocess
+out = subprocess.check_output(
+    ["tshark", "-r", "capture.pcap", "-Y", "icmp.type==8",
+     "-T", "fields", "-e", "data.data"])
+for line in out.decode().strip().split('\n'):
+    if not line.strip(): continue
+    try:
+        payload = bytes.fromhex(line.replace(':', ''))
+        print(f'ICMP data: {payload[:64]}')
+        if b'CTF{' in payload or b'flag' in payload:
+            print(f'*** FLAG FOUND: {payload}')
+    except ValueError:
+        pass
+EOF
+
+# ICMP timing channel: inter-packet delay encodes bits
+python3 << 'EOF'
+import subprocess
+out = subprocess.check_output(
+    ["tshark", "-r", "capture.pcap", "-Y", "icmp.type==8",
+     "-T", "fields", "-e", "frame.time_epoch"])
+times = [float(t) for t in out.decode().strip().split('\n') if t.strip()]
+deltas = [int((times[i+1] - times[i]) * 1000) for i in range(len(times)-1)]
+bits = ['1' if d >= 100 else '0' for d in deltas]
+data = bytes(int(''.join(bits[i:i+8]), 2) for i in range(0, len(bits)-7, 8))
+print('Timing message:', data.decode(errors='ignore'))
+EOF
 ```
 
 ### Specialized Techniques

@@ -18,6 +18,9 @@ Evidence characteristics: block-level device images, filesystem type determines 
 6. Carve deleted files: `photorec image.dd` or `foremost -i image.dd`
 7. If encrypted: identify volume type, recover key from memory, or brute-force
 8. If filesystem metadata damaged: manual inode parsing, block-level extraction
+9. If exFAT: parse VBR for cluster bitmap offset, enumerate directory entries (including deleted 0xE5-marked), scan free cluster bitmap for residual data in unallocated clusters
+10. If ReFS: parse VBR at offset 0 for object ID tables, walk B+ tree metadata for directory/file entries, extract from integrity stream checkpoints
+11. If F2FS: locate superblock at offset 1024, extract NAT for inode-to-block mapping, scan SIT for segment utilization, replay checkpoint area for recent inode updates
 
 ## Techniques
 
@@ -126,6 +129,152 @@ with open("disk.img", "rb") as f:
     if b"CTF{" in free_data:
         idx = free_data.index(b"CTF{")
         print(free_data[idx:idx+100])
+```
+
+### exFAT Directory Entry and Deleted File Recovery
+
+```bash
+# Identify exFAT filesystem
+file disk.img
+# Parse VBR for key parameters
+python3 << 'EOF'
+import struct
+with open("disk.img", "rb") as f:
+    vbr = f.read(512)
+# exFAT VBR at sector 0 (signature at offset 3: "EXFAT   ")
+bytes_per_sector = struct.unpack_from("<I", vbr, 108)[0]
+sectors_per_cluster = vbr[116]
+cluster_size = bytes_per_sector * sectors_per_cluster
+num_fats = vbr[117]
+fat_offset = struct.unpack_from("<I", vbr, 80)[0]
+fat_length = struct.unpack_from("<I", vbr, 84)[0]
+cluster_heap = struct.unpack_from("<I", vbr, 88)[0]
+root_cluster = struct.unpack_from("<I", vbr, 96)[0]
+print(f"Cluster size: {cluster_size}, Root cluster: {root_cluster}, FAT at: {fat_offset}")
+EOF
+
+# List directory entries including deleted
+fls -r -d exfat.img
+
+# Scan free cluster bitmap for residual data
+python3 << 'EOF'
+import struct
+with open("disk.img", "rb") as f:
+    vbr = f.read(512)
+    bps = struct.unpack_from("<I", vbr, 108)[0]
+    spc = vbr[116]
+    cs = bps * spc
+    bmp_off = struct.unpack_from("<I", vbr, 80)[0] + struct.unpack_from("<I", vbr, 84)[0]
+    bmp_len = (struct.unpack_from("<I", vbr, 92)[0] + 7) // 8
+    f.seek(bmp_off * bps)
+    bitmap = f.read(bmp_len)
+    data_start = struct.unpack_from("<I", vbr, 88)[0] * bps
+    free_clusters = [i for i in range(len(bitmap) * 8) if not (bitmap[i // 8] >> (i % 8)) & 1]
+    for c in free_clusters[:20]:
+        f.seek(data_start + c * cs)
+        data = f.read(min(cs, 4096))
+        if b"CTF{" in data or b"flag" in data:
+            print(f"Cluster {c}: {data[:200]}")
+EOF
+
+# Sleuth Kit extraction of exFAT
+icat exfat.img <inode> > recovered.bin
+```
+
+### ReFS B+ Tree Structure Analysis
+
+```bash
+# Identify ReFS partition
+dd if=disk.img bs=512 count=1 | xxd | grep -q "ReFS" && echo "ReFS detected"
+
+# Parse ReFS VBR, walk B+ tree metadata
+python3 << 'EOF'
+import struct
+with open("disk.img", "rb") as f:
+    vbr = f.read(512)
+signature = vbr[3:7]
+if signature != b"ReFS":
+    print("Not ReFS"); exit(1)
+bytes_per_sector = struct.unpack_from("<H", vbr, 11)[0]
+sectors_per_cluster = vbr[13]
+cluster_size = bytes_per_sector * sectors_per_cluster
+obj_id_table_cluster = struct.unpack_from("<I", vbr, 0x30)[0]
+integrity_enabled = vbr[0x38] & 1
+print(f"Cluster: {cluster_size}, Object ID table at cluster: {obj_id_table_cluster}")
+f.seek(obj_id_table_cluster * cluster_size)
+page = f.read(cluster_size)
+page_magic = page[:4]
+entry_count = struct.unpack_from("<H", page, 8)[0]
+for i in range(entry_count):
+    entry = page[0x30 + i * 0x38:0x30 + (i + 1) * 0x38]
+    obj_id = struct.unpack_from("<Q", entry, 0)[0]
+    file_ref = struct.unpack_from("<Q", entry, 8)[0]
+    print(f"Object ID: {obj_id}, File reference: {file_ref}")
+EOF
+
+# Integrity stream checkpoint scan for data recovery
+python3 << 'EOF'
+import struct
+with open("disk.img", "rb") as f:
+    data = f.read()
+for ckpt_marker in [b"CKPT", b"CHKPT"]:
+    pos = 0
+    while True:
+        idx = data.find(ckpt_marker, pos)
+        if idx < 0:
+            break
+        seq = struct.unpack_from("<I", data, idx + 4)[0]
+        print(f"Checkpoint at offset {idx}, sequence {seq}")
+        pos = idx + 1
+EOF
+```
+
+### F2FS Flash Filesystem Checkpoint Recovery
+
+```bash
+# Identify F2FS superblock at offset 1024
+dd if=disk.img bs=1024 skip=1 count=1 | xxd | head -4
+# F2FS magic at offset 0: "\x10\x20\xF5\xF2"
+
+# Parse superblock, NAT, SIT structures
+python3 << 'EOF'
+import struct
+with open("disk.img", "rb") as f:
+    f.seek(1024)
+    sb = f.read(512)
+magic = struct.unpack_from("<I", sb, 0)[0]
+if magic != 0xF2F52010:
+    print("Not F2FS"); exit(1)
+log_blocksize = struct.unpack_from("<I", sb, 16)[0]
+block_size = 1 << log_blocksize
+segment_count = struct.unpack_from("<I", sb, 40)[0]
+nat_blkaddr = struct.unpack_from("<I", sb, 68)[0]
+sit_blkaddr = struct.unpack_from("<I", sb, 76)[0]
+main_blkaddr = struct.unpack_from("<I", sb, 100)[0]
+print(f"Block: {block_size}, Segments: {segment_count}, NAT: {nat_blkaddr}, SIT: {sit_blkaddr}")
+
+# Read NAT entries (inode -> block mapping)
+f.seek(nat_blkaddr * block_size)
+nat_block = f.read(block_size)
+for i in range(min(20, (block_size - 8) // 8)):
+    ino = struct.unpack_from("<Q", nat_block, 8 + i * 16)[0]
+    if ino:
+        block_addr = struct.unpack_from("<Q", nat_block, 8 + i * 16 + 8)[0]
+        print(f"Inode {ino} -> block {block_addr}")
+
+# Scan SIT for segment utilization
+f.seek(sit_blkaddr * block_size)
+sit_entries = struct.unpack_from("<" + "I" * (block_size // 4), f.read(block_size))
+valid_blocks = [i for i, v in enumerate(sit_entries) if v & 0x1FFF]
+print(f"Segments with valid data: {len(valid_blocks)}")
+EOF
+
+# Mount F2FS image (requires kernel module)
+sload.f2fs disk.img /mnt/f2fs
+ls /mnt/f2fs
+
+# Checkpoint-based recovery for crashed filesystem
+fsck.f2fs disk.img
 ```
 
 ### NTFS Alternate Data Streams
