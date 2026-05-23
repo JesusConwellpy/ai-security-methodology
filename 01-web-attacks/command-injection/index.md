@@ -382,6 +382,8 @@ Encode PHP code as BMP pixel colors (BGR format). Name the file `'A'*46 + '.php'
 
 ## Pitfalls
 
+See [Web Payloads](../../payloads/web/index.md) for tested command injection payloads.
+
 - **Java `Runtime.exec()` uses `StringTokenizer`** on the command string, so arguments with spaces are split incorrectly. Always use the `String[]` overload to avoid shell interpretation issues -- but this also means pipe, redirect, and shell metacharacters do NOT work in `Runtime.exec(String)`. You must build the full command array or use `/bin/sh -c` to get shell features.
 - **Python `subprocess.call(cmd, shell=True)`** is the dangerous variant. Without `shell=True`, the command is executed directly with no shell interpretation -- metacharacters are passed as literal arguments.
 - **PHP `system()` vs `exec()`:** `system()` outputs directly and returns the last line; `exec()` captures output in an array parameter. Both execute through `/bin/sh -c`.

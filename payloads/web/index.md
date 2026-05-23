@@ -2,6 +2,8 @@
 
 A comprehensive collection of working payloads for web application security testing. Organized by vulnerability category. All payloads are functional and have been validated against test environments.
 
+> These payloads correspond to techniques documented in [01-web-attacks](../01-web-attacks/).
+
 ---
 
 ## SQL / NoSQL Injection

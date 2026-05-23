@@ -354,6 +354,8 @@ mXSS / email preview          = 6.5 - 8.1
 
 ## Pitfalls
 
+See [Web Payloads](../../payloads/web/index.md) for tested XSS payload variants.
+
 - **Wrong context classification**: Distinguishing HTML context vs attribute context vs JS string context is critical. A payload that works in HTML (`<script>alert(1)</script>`) fails entirely when injected into an attribute value or JS string. Always determine the exact injection point before selecting payload.
 - **CSP misreading**: CSP `script-src 'self'` does NOT block inline scripts unless `'unsafe-inline'` is absent -- old Chrome versions treated `'self'` as allowing inline. Check browser version CSP behavior. Missing `base-uri` is a bypass not an independent CSP weakness.
 - **DOM-based XSS miss**: Many tests only check server-rendered reflection. DOM XSS exists entirely client-side: the payload never reaches the server. Test with `#<img src=x onerror=alert(1)>` in hash, and inspect client-side JS for sinks (innerHTML, eval, jQuery $()).

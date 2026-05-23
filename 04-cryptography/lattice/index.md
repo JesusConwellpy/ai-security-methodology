@@ -1,5 +1,7 @@
 # Lattice-Based Cryptography Attacks
 
+See also: [RSA Attacks](../rsa/index.md#boneh-durfee-attack-small-d) for the Boneh-Durfee lattice application.
+
 ## Trigger
 
 Load when a challenge involves: many modular equations with a promise that hidden values are small, sparse, or close to each other; partial leakage of a secret nonce or state bits; high-bit or low-bit truncation of LCG states; a subset-sum or knapsack instance; vectors or matrices over `Z_q` where the true solution would be unusually short; noisy linear equations modulo `q`; or explicit mentions of LWE, Ring-LWE, NTRU, GGH, or "short vector." Lattice reduction is the universal tool for problems with a "small unknown" inside modular arithmetic.

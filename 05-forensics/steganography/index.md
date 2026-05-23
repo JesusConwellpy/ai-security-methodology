@@ -378,6 +378,8 @@ ffmpeg -i file.mp4 -map 0:2 -c copy hidden_stream.mp4
 
 ### Network Protocol Steganography
 
+See also: [Network Forensics](../network/index.md) for tshark-based covert channel detection.
+
 ```bash
 # TCP ISN field extraction (32-bit Initial Sequence Number)
 tshark -r capture.pcap -T fields -e tcp.srcport -e tcp.seq -e tcp.ack \

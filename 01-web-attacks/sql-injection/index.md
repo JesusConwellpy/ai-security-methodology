@@ -281,6 +281,8 @@ username=39&password=%1$c+union+select+1,group_concat(flag),3+from+flags--+-
 
 ## Pitfalls
 
+See [Web Payloads](../../payloads/web/index.md) for database-specific payloads.
+
 - **Wrong quote type**: Single quote may be escaped, but double quote `"` or backtick may work. Test all three.
 - **Blind misreading**: Cached responses, load balancers, rate limiting cause false positives/negatives. Confirm boolean with time-based.
 - **ORM vs raw SQL**: An app may parameterize 90% of queries but have a few raw SQL calls. Each endpoint must be tested.

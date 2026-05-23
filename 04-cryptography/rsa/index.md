@@ -204,6 +204,8 @@ for n in moduli:
 
 ### Boneh-Durfee Attack (Small d)
 
+See [Lattice & LWE](../lattice/index.md) for lattice reduction fundamentals (LLL, BKZ).
+
 When `d < N^0.292` and `e ≈ N`, Boneh-Durfee extends Wiener's bound using Coppersmith's method on the bivariate polynomial `f(x,y) = x*(A + y) - 1 mod e` where `A = (N+1)//2`. A lattice is built from monomial shifts of `f`, reduced via LLL, and the short vector reveals `(x,y) = (d, phi(N) - (N+1))`:
 
 ```python

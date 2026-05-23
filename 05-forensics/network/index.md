@@ -119,6 +119,8 @@ wireshark capture-dec.pcapng
 
 ### Covert Channel Detection
 
+See also: [Steganography](../steganography/index.md) for raw byte extraction techniques.
+
 ```bash
 # TCP flag covert channel (6 flag bits = base64)
 # Extract packets with non-standard flag combinations

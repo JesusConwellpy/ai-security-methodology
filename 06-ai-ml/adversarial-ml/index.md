@@ -567,6 +567,8 @@ def neural_cleanse(model, num_classes, input_shape, device="cpu", steps_per_clas
 
 ## Pitfalls
 
+For model extraction and training data attacks, see [Model Attacks](../model-attacks/index.md).
+
 - **Single-step vs iterative:** FGSM is fast but unreliable against robust models. Always try PGD before concluding a model is adversarially robust
 - **Epsilon too large:** Visible perturbations trigger human review or input sanitization; start with epsilon=0.01-0.03 and increase only if needed
 - **Normalization mismatch:** Models often normalize inputs (mean/std or [0,1] scaling). Apply attacks in the model's actual input space, not the raw pixel space

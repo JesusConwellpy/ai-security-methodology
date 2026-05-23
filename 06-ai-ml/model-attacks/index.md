@@ -1016,6 +1016,8 @@ def reconstruct_weight_magnitudes(model, W_normalized, layer_idx, input_dim, out
 
 ## Pitfalls
 
+For query-based evasion attacks (not extraction), see [Adversarial ML](../adversarial-ml/index.md).
+
 - **Model architecture mismatch:** The base model architecture must match exactly for weight perturbation negation and LoRA merging; even minor differences in config (hidden size, layer count) cause dimension mismatches
 - **Temperature and sampling:** For model inversion and feature visualization, low temperature produces cleaner results but may miss nuanced features; try multiple temperature values
 - **Batch normalization state:** Always call `model.eval()` before attacks that require gradients through the model; `model.train()` uses batch statistics that vary with batch size
