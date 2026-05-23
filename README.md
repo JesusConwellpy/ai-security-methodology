@@ -66,6 +66,10 @@ Each skill includes trigger conditions, a signal-to-document routing table, quic
 
 Load relevant documents as context for AI agents performing security research. Each document is self-contained — read it, follow the decision tree, apply the techniques.
 
+## Acknowledgments
+
+This project draws inspiration from [src-hunter-skill](https://github.com/MyuriKanao/src-hunter-skill), a security research methodology framework for AI agents.
+
 ## License
 
 MIT — see [LICENSE](LICENSE)
