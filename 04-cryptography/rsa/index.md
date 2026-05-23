@@ -204,15 +204,16 @@ for n in moduli:
 
 ### Boneh-Durfee Attack (Small d)
 
-When `d < N^0.292` and `e ≈ N`, Boneh-Durfee extends Wiener's bound using Coppersmith's method on the bivariate polynomial `f(x,y) = x*(A + y) + 1 mod e` where `A = (N+1)//2`. A lattice is built from monomial shifts of `f`, reduced via LLL, and the short vector reveals `(x,y) = (d, phi(N) - (N+1))`:
+When `d < N^0.292` and `e ≈ N`, Boneh-Durfee extends Wiener's bound using Coppersmith's method on the bivariate polynomial `f(x,y) = x*(A + y) - 1 mod e` where `A = (N+1)//2`. A lattice is built from monomial shifts of `f`, reduced via LLL, and the short vector reveals `(x,y) = (d, phi(N) - (N+1))`:
 
 ```python
 # Boneh-Durfee: recover d when d < N^0.292 (e ≈ N)
 # SageMath lattice attack using Coppersmith / LLL
 def boneh_durfee(N, e, delta=0.292, m=3):
     P.<x, y> = PolynomialRing(ZZ)
-    A = (N + 1) // 2
-    f = x * (A + y) + 1                 # f ≈ 0 (mod e)
+    A = (N + 1) // 2  # standard variable mapping for Coppersmith formulation
+    # Mapping: f(x,y) = x*(A+y) - 1 ≡ 0 (mod e), where x = d and y = k*(p+q-1) - (N+1)
+    f = x * (A + y) - 1                 # f ≡ 0 (mod e)
     X = int(N^delta); Y = int(N^0.5)
 
     # Shift polynomials: x^i * f^k * e^(m-k), y^j * f^k * e^(m-k)

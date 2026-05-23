@@ -179,7 +179,7 @@ def mov_attack(p, a, b, G, Q):
     while k < 20:                          # find embedding degree
         if n.divides(p^k - 1): break
         k += 1
-    if k >= 12:
+    if k > 6:
         print("Embedding degree too large"); return None
 
     # Extend curve, find independent point R of order n

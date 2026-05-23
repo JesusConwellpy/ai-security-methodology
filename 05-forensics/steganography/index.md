@@ -399,20 +399,37 @@ tshark -r capture.pcap -T fields -e ip.id -e ip.src -Y "ip" | head -30
 
 # Detect non-random IP IDs (possible covert channel)
 python3 << 'EOF'
+# Proper pcap parsing: skip pcap global header + per-packet headers
+import struct
+
+# Use scapy if available; this manual parsing handles standard Ethernet pcap
 with open('capture.pcap', 'rb') as f:
     data = f.read()
-import struct
-pos = 0
+
+# Pcap global header: magic(4) + version(4) + timezone(4) + sigfigs(4) + snaplen(4) + linktype(4) = 24
+if len(data) < 24:
+    exit(1)
+link_type = struct.unpack_from('<I', data, 20)[0]
+eth_overhead = 14 if link_type == 1 else 0  # DLT_EN10MB = 1 (Ethernet)
+
+pos = 24  # skip global header
 ids = []
-while pos < len(data) - 20:
-    if data[pos:pos+2] == b'\x08\x00':
-        ip_len = (data[pos+16] & 0x0F) * 4
-        if ip_len >= 20:
-            ip_id = struct.unpack_from('>H', data, pos + 18)[0]
+while pos + 16 <= len(data):
+    # Per-packet header: ts_sec(4) + ts_usec(4) + incl_len(4) + orig_len(4) = 16
+    incl_len = struct.unpack_from('<I', data, pos + 8)[0]
+    pkt_start = pos + 16
+    if incl_len < 14 or pkt_start + incl_len > len(data):
+        break
+    # Parse Ethernet frame: dst(6) + src(6) + type(2) = 14
+    eth_type = struct.unpack_from('>H', data, pkt_start + 12)[0]
+    if eth_type == 0x0800:  # IPv4
+        ip_hdr = pkt_start + 14
+        ip_ihl = (data[ip_hdr] & 0x0F) * 4
+        if ip_ihl >= 20:
+            ip_id = struct.unpack_from('>H', data, ip_hdr + 2)[0]
             ids.append(ip_id)
-            pos += 14 + ip_len
-    else:
-        pos += 1
+    pos = pkt_start + incl_len
+
 diffs = [ids[i+1] - ids[i] for i in range(len(ids)-1)]
 print(f"IP IDs: {ids[:30]}...")
 print(f"Diffs: {diffs[:30]}")

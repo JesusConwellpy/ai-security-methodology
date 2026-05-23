@@ -85,7 +85,7 @@ def crc_forge(data, target_crc):
     crc = target_crc ^ 0xFFFFFFFF  # invert final xor
     for b in data[::-1]:
         crc = _crc32_table_update(crc, b, poly)
-    correction = crc ^ (binascii.crc32(data) & 0xFFFFFFFF)  # replace missing _curr_crc
+    correction = crc ^ (binascii.crc32(data) & 0xFFFFFFFF)  # XOR: desired CRC xor current CRC
     return data + correction.to_bytes(4, 'little')
 
 def _crc32_table_update(crc, byte, poly):

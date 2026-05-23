@@ -247,7 +247,7 @@ if magic != 0xF2F52010:
     print("Not F2FS"); exit(1)
 log_blocksize = struct.unpack_from("<I", sb, 16)[0]
 block_size = 1 << log_blocksize
-segment_count = struct.unpack_from("<I", sb, 40)[0]
+segment_count = struct.unpack_from("<I", sb, 24)[0]
 nat_blkaddr = struct.unpack_from("<I", sb, 68)[0]
 sit_blkaddr = struct.unpack_from("<I", sb, 76)[0]
 main_blkaddr = struct.unpack_from("<I", sb, 100)[0]
@@ -256,11 +256,12 @@ print(f"Block: {block_size}, Segments: {segment_count}, NAT: {nat_blkaddr}, SIT:
 # Read NAT entries (inode -> block mapping)
 f.seek(nat_blkaddr * block_size)
 nat_block = f.read(block_size)
-for i in range(min(20, (block_size - 8) // 8)):
-    ino = struct.unpack_from("<Q", nat_block, 8 + i * 16)[0]
-    if ino:
-        block_addr = struct.unpack_from("<Q", nat_block, 8 + i * 16 + 8)[0]
-        print(f"Inode {ino} -> block {block_addr}")
+for i in range(min(20, (block_size - 8) // 9)):
+    # NAT entry format: node_id(4) + node_ino(4) + version(1) = 9 bytes packed
+    entry = nat_block[8 + i * 9:8 + (i + 1) * 9]
+    node_id, node_ino, version = struct.unpack_from('<IBI', entry, 0)
+    if node_ino:
+        print(f"Inode {node_ino} at node_id {node_id}, version={version}")
 
 # Scan SIT for segment utilization
 f.seek(sit_blkaddr * block_size)

@@ -250,20 +250,42 @@ When an LCG outputs only the high bits (e.g., top 16 of 32), hidden low bits are
 
 ```python
 def recover_truncated_lcg(a, c, m, truncated, r):
-    """Recover full LCG state from truncated high-bit outputs."""
+    """Recover full LCG state from truncated high-bit outputs via CVP (Kannan embedding).
+
+    Each LCG output s_i = (truncated[i] << r) + h_i where h_i in [0, 2^r) is unknown.
+    Recurrence: h_{i+1} - a*h_i = a*truncated[i]*2^r + c - truncated[i+1]*2^r (mod m).
+    """
     n = len(truncated) - 1
-    # Lattice captures the recurrence constraint on hidden bits
-    B = matrix(ZZ, n + 2, n + 2)
+    F = 1 << r  # scale of hidden bits
+
+    # RHS of each constraint: encodes known truncated values and the + c term
+    targets = [(a * (truncated[i] << r) + c - (truncated[i+1] << r)) % m
+               for i in range(n)]
+
+    # Kannan embedding for CVP: the lattice L contains homogeneous solutions;
+    # we find the closest lattice point to the target vector.
+    # Block structure: [F*I_{n+1}  | 0         | 0]
+    #                 [A           | m*I_n     | 0]
+    #                 [targets_vec | 0         | 1]
+    dim = n + 1 + n + 1  # (h_0..h_n) + (k_0..k_{n-1}) + Kannan embedding
+    B = matrix(ZZ, dim, dim)
+    for i in range(n + 1):
+        B[i, i] = F                     # scaling for bounded h_i
     for i in range(n):
-        B[i, i] = 1
-        B[i, n] = a^(i + 1)
-    B[n, n] = m
-    B[n+1, n] = 1
+        B[n + 1 + i, i] = -a            # coefficient of h_i in constraint i
+        B[n + 1 + i, i + 1] = 1         # coefficient of h_{i+1} in constraint i
+        B[n + 1 + i, n + 1 + i] = m     # modulus multiplier
+    for i in range(n):
+        B[dim - 1, i] = targets[i]      # target row (CVP embedding)
+    B[dim - 1, dim - 1] = 1
 
     B = B.LLL()
     for row in B:
-        hidden = [int(v) & ((1 << r) - 1) for v in row[:n]]
-        if not all(0 <= v < (1 << r) for v in hidden):
+        if row[dim - 1] not in (1, -1):
+            continue
+        sign = row[dim - 1]
+        hidden = [int(sign * int(row[i]) // F) for i in range(n + 1)]
+        if not all(0 <= v < F for v in hidden):
             continue
         states = [(truncated[i] << r) + hidden[i] for i in range(n + 1)]
         if all((a * states[i] + c) % m == states[i + 1] for i in range(n)):

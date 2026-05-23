@@ -357,9 +357,12 @@ if header[:4] == b"MDMP":
     print(f"Minidump v{version}, {streams} streams")
     f.seek(stream_dir_rva)
     for s in range(streams):
-        stype = struct.unpack_from("<I", f.read(12), 0)[0]
-        ssize = struct.unpack_from("<I", f.read(12), 4)[0]
-        srva = struct.unpack_from("<I", f.read(12), 8)[0]
+        data = f.read(12)  # ONE read per iteration
+        if len(data) < 12:
+            break
+        stype = struct.unpack_from("<I", data, 0)[0]
+        ssize = struct.unpack_from("<I", data, 4)[0]
+        srva = struct.unpack_from("<I", data, 8)[0]
         type_names = {0: "Unused", 2: "ThreadList", 3: "ModuleList",
                       4: "MemoryList", 5: "Exception", 6: "SystemInfo"}
         print(f"  Stream {s}: {type_names.get(stype, 'Unknown')}, size={ssize}")
