@@ -45,3 +45,4 @@ target/
 /home/
 /etc/
 .logic-*
+.bugscan-*
