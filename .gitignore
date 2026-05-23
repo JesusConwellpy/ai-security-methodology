@@ -46,3 +46,4 @@ target/
 /etc/
 .logic-*
 .bugscan-*
+.cross-doc-*
